@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: agentskills-postgres
+    environment:
+      POSTGRES_DB: agentskills
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  openldap:
+    image: bitnami/openldap:latest
+    container_name: agentskills-openldap
+    environment:
+      LDAP_ROOT: "dc=agentskills,dc=io"
+      LDAP_ADMIN_USERNAME: "admin"
+      LDAP_ADMIN_PASSWORD: "ldap-admin-password"
+      LDAP_USERS: "admin@test.local,user@test.local"
+      LDAP_PASSWORDS: "e2e-admin-password-123,e2e-user-password-123"
+    ports:
+      - "636:636"
+      - "389:389"
+
+volumes:
+  pgdata:

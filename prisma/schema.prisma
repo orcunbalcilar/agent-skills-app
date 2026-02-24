@@ -1,0 +1,232 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum SkillStatus {
+  TEMPLATE
+  RELEASED
+}
+
+enum ChangeRequestStatus {
+  OPEN
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
+
+enum NotificationType {
+  NEW_COMMENT
+  CHANGE_REQUEST_SUBMITTED
+  CHANGE_REQUEST_APPROVED
+  CHANGE_REQUEST_REJECTED
+  NEW_FOLLOWER
+  SKILL_RELEASED
+  SKILL_FORKED
+  OWNER_ADDED
+  OWNER_REMOVED
+}
+
+enum ReactionEmoji {
+  THUMBS_UP
+  THUMBS_DOWN
+  LAUGH
+  HOORAY
+  CONFUSED
+  HEART
+  ROCKET
+  EYES
+}
+
+model User {
+  id                      String   @id @default(cuid())
+  githubId                String   @unique
+  email                   String   @unique
+  name                    String
+  avatarUrl               String?
+  role                    Role     @default(USER)
+  notificationPreferences Json     @default("{}")
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  ownedSkills      SkillOwner[]
+  followers        Follower[]
+  changeRequests   ChangeRequest[]    @relation("Requester")
+  resolvedRequests ChangeRequest[]    @relation("Resolver")
+  comments         Comment[]
+  commentReactions CommentReaction[]
+  skillReactions   SkillReaction[]
+  notifications    Notification[]
+  downloadEvents   SkillDownloadEvent[]
+}
+
+model Skill {
+  id            String      @id @default(cuid())
+  name          String
+  description   String
+  spec          Json
+  status        SkillStatus @default(TEMPLATE)
+  version       Int         @default(1)
+  forkedFromId  String?
+  forkCount     Int         @default(0)
+  downloadCount Int         @default(0)
+  releasedAt    DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  forkedFrom        Skill?               @relation("Forks", fields: [forkedFromId], references: [id])
+  forks             Skill[]              @relation("Forks")
+  owners            SkillOwner[]
+  tags              SkillTag[]
+  followers         Follower[]
+  changeRequests    ChangeRequest[]
+  comments          Comment[]
+  reactions         SkillReaction[]
+  downloadEvents    SkillDownloadEvent[]
+  notifications     Notification[]
+  followerSnapshots FollowerSnapshot[]
+}
+
+model SkillOwner {
+  skillId    String
+  userId     String
+  assignedAt DateTime @default(now())
+
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([skillId, userId])
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  isSystem  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  skills SkillTag[]
+}
+
+model SkillTag {
+  skillId String
+  tagId   String
+
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  tag   Tag   @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([skillId, tagId])
+}
+
+model Follower {
+  skillId    String
+  userId     String
+  followedAt DateTime @default(now())
+
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([skillId, userId])
+}
+
+model ChangeRequest {
+  id           String              @id @default(cuid())
+  skillId      String
+  requesterId  String
+  title        String
+  description  String
+  status       ChangeRequestStatus @default(OPEN)
+  resolvedById String?
+  resolvedAt   DateTime?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  skill      Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  requester  User   @relation("Requester", fields: [requesterId], references: [id], onDelete: Cascade)
+  resolvedBy User?  @relation("Resolver", fields: [resolvedById], references: [id])
+}
+
+model Comment {
+  id        String    @id @default(cuid())
+  skillId   String
+  authorId  String
+  content   String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  skill     Skill             @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  author    User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  reactions CommentReaction[]
+}
+
+model CommentReaction {
+  id        String        @id @default(cuid())
+  commentId String
+  userId    String
+  emoji     ReactionEmoji
+  createdAt DateTime      @default(now())
+
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, userId, emoji])
+}
+
+model SkillReaction {
+  id        String        @id @default(cuid())
+  skillId   String
+  userId    String
+  emoji     ReactionEmoji
+  createdAt DateTime      @default(now())
+
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([skillId, userId, emoji])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  skillId   String?
+  type      NotificationType
+  payload   Json
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill Skill? @relation(fields: [skillId], references: [id])
+}
+
+model SkillDownloadEvent {
+  id        String   @id @default(cuid())
+  skillId   String
+  userId    String?
+  createdAt DateTime @default(now())
+
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  user  User? @relation(fields: [userId], references: [id])
+}
+
+model FollowerSnapshot {
+  id           String   @id @default(cuid())
+  skillId      String
+  count        Int
+  snapshotDate DateTime @db.Date
+  createdAt    DateTime @default(now())
+
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([skillId, snapshotDate])
+}
