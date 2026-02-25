@@ -21,6 +21,8 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         owners: { include: { user: { select: { id: true, name: true, avatarUrl: true } } } },
         tags: { include: { tag: true } },
         reactions: true,
+        followers: { select: { userId: true } },
+        followerSnapshots: { orderBy: { snapshotDate: "asc" } },
         _count: { select: { comments: true, followers: true, changeRequests: true } },
       },
     });
@@ -77,30 +79,53 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       name?: string;
       description?: string;
       spec?: Record<string, unknown>;
+      files?: Array<{ path: string; content: string }>;
       tags?: string[];
+      editMessage?: string;
     };
 
-    const updated = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const updated = await prisma.$transaction(async (tx) => {
+      // Snapshot current state as a version before updating
+      await tx.skillVersion.create({
+        data: {
+          skillId: id,
+          version: skill.version,
+          spec: skill.spec as Prisma.InputJsonValue,
+          files: skill.files as Prisma.InputJsonValue,
+          editedById: session.user.id,
+          message: body.editMessage ?? null,
+        },
+      });
+
       const s = await tx.skill.update({
         where: { id },
         data: {
           ...(body.name !== undefined && { name: body.name }),
           ...(body.description !== undefined && { description: body.description }),
           ...(body.spec !== undefined && { spec: body.spec as Prisma.InputJsonValue }),
+          ...(body.files !== undefined && { files: body.files as Prisma.InputJsonValue }),
+          version: { increment: 1 },
         },
       });
 
       if (body.tags !== undefined) {
         await tx.skillTag.deleteMany({ where: { skillId: id } });
-        const tags = await tx.tag.findMany({ where: { name: { in: body.tags } } });
-        const existing = new Set(tags.map((t) => t.name));
-        const newTagNames = body.tags.filter((t) => !existing.has(t)).slice(0, 10 - tags.length);
+        // Support both tag IDs and tag names
+        const byId = await tx.tag.findMany({ where: { id: { in: body.tags } } });
+        const byName = await tx.tag.findMany({ where: { name: { in: body.tags } } });
+        const found = [...byId, ...byName];
+        const foundIds = new Set(found.map((t) => t.id));
+        const foundNames = new Set(found.map((t) => t.name));
+        const newTagNames = body.tags
+          .filter((t) => !foundIds.has(t) && !foundNames.has(t))
+          .slice(0, 10 - found.length);
         const createdTags = await Promise.all(
           newTagNames.map((name) => tx.tag.create({ data: { name } }))
         );
-        const allTags = [...tags, ...createdTags].slice(0, 10);
+        const allTagIds = new Set([...found.map((t) => t.id), ...createdTags.map((t) => t.id)]);
+        const allTags = [...allTagIds].slice(0, 10);
         await tx.skillTag.createMany({
-          data: allTags.map((t) => ({ skillId: id, tagId: t.id })),
+          data: allTags.map((tagId) => ({ skillId: id, tagId })),
         });
       }
 

@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { SkillCard } from "@/features/skills/components/SkillCard";
 import { SearchBar } from "@/features/search/components/SearchBar";
 import { TagSelector } from "@/features/tags/components/TagSelector";
+import { CategoryFilter } from "@/features/tags/components/CategoryFilter";
 import { Pagination } from "@/components/shared/Pagination";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSkills } from "@/features/skills/hooks/useSkills";
@@ -56,8 +57,11 @@ export default function SkillsPage() {
         </Select>
       </div>
 
+      {/* Category filter chips */}
+      <CategoryFilter selected={selectedTags} onChange={setSelectedTags} />
+
       <div>
-        <p className="text-sm text-muted-foreground mb-2">Filter by tags:</p>
+        <p className="text-sm text-muted-foreground mb-2">All tags:</p>
         <TagSelector selected={selectedTags} onChange={setSelectedTags} max={10} />
       </div>
 

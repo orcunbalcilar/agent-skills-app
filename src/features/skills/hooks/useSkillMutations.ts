@@ -7,6 +7,7 @@ interface CreateSkillInput {
   name: string;
   description: string;
   spec: Record<string, unknown>;
+  files?: Array<{ path: string; content: string }>;
   tags?: string[];
 }
 
@@ -15,7 +16,9 @@ interface UpdateSkillInput {
   name?: string;
   description?: string;
   spec?: Record<string, unknown>;
+  files?: Array<{ path: string; content: string }>;
   tags?: string[];
+  editMessage?: string;
 }
 
 async function apiPost(url: string, body: unknown) {
@@ -106,7 +109,28 @@ export function useToggleFollow(skillId: string, isFollowing: boolean) {
       isFollowing
         ? apiDelete(`/api/v1/skills/${skillId}/follow`)
         : apiPost(`/api/v1/skills/${skillId}/follow`, {}),
-    onSuccess: () => {
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: ["skill", skillId] });
+      const previous = qc.getQueryData(["skill", skillId]);
+      qc.setQueryData(["skill", skillId], (old: Record<string, unknown> | undefined) => {
+        if (!old) return old;
+        const count = (old._count as Record<string, number>) ?? {};
+        return {
+          ...old,
+          _count: {
+            ...count,
+            followers: (count.followers ?? 0) + (isFollowing ? -1 : 1),
+          },
+        };
+      });
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        qc.setQueryData(["skill", skillId], context.previous);
+      }
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: ["skill", skillId] });
     },
   });

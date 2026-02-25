@@ -71,6 +71,7 @@ model User {
   skillReactions   SkillReaction[]
   notifications    Notification[]
   downloadEvents   SkillDownloadEvent[]
+  skillVersions    SkillVersion[]
 }
 
 model Skill {
@@ -78,6 +79,7 @@ model Skill {
   name          String
   description   String
   spec          Json
+  files         Json        @default("[]")
   status        SkillStatus @default(TEMPLATE)
   version       Int         @default(1)
   forkedFromId  String?
@@ -98,6 +100,7 @@ model Skill {
   downloadEvents    SkillDownloadEvent[]
   notifications     Notification[]
   followerSnapshots FollowerSnapshot[]
+  versions          SkillVersion[]
 }
 
 model SkillOwner {
@@ -231,6 +234,22 @@ model FollowerSnapshot {
   skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
 
   @@unique([skillId, snapshotDate])
+}
+
+model SkillVersion {
+  id         String   @id @default(cuid())
+  skillId    String
+  version    Int
+  spec       Json
+  files      Json     @default("[]")
+  editedById String
+  message    String?
+  createdAt  DateTime @default(now())
+
+  skill    Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  editedBy User  @relation(fields: [editedById], references: [id])
+
+  @@unique([skillId, version])
 }
 
 model Account {

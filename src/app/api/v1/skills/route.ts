@@ -62,6 +62,7 @@ export async function POST(req: NextRequest) {
       name?: string;
       description?: string;
       spec?: Record<string, unknown>;
+      files?: Array<{ path: string; content: string }>;
       tags?: string[];
     };
 
@@ -85,6 +86,7 @@ export async function POST(req: NextRequest) {
           name: body.name!,
           description: body.description!,
           spec: body.spec as Parameters<typeof prisma.skill.create>[0]["data"]["spec"],
+          files: (body.files ?? []) as Parameters<typeof prisma.skill.create>[0]["data"]["files"],
         },
       });
 

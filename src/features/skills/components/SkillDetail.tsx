@@ -13,9 +13,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { SkillSpecViewer } from "./SkillSpecViewer";
 import { SkillStats } from "./SkillStats";
 import { EmojiReactions } from "./EmojiReactions";
+import { VersionHistory } from "./VersionHistory";
+import { VersionDiff } from "./VersionDiff";
 import { CommentThread } from "@/features/comments/components/CommentThread";
 import { ChangeRequestList } from "@/features/change-requests/components/ChangeRequestList";
 import { ChangeRequestForm } from "@/features/change-requests/components/ChangeRequestForm";
+import { toast } from "sonner";
 import {
   useDeleteSkill,
   useReleaseSkill,
@@ -28,6 +31,7 @@ import type { SkillSummary } from "../types";
 interface SkillDetailProps {
   skill: SkillSummary & {
     spec: Record<string, unknown>;
+    files?: Array<{ path: string; content: string }>;
     followers?: Array<{ userId: string }>;
     followerSnapshots?: Array<{ snapshotDate: string; count: number }>;
   };
@@ -46,6 +50,7 @@ export function SkillDetail({ skill }: Readonly<SkillDetailProps>) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [releaseDialogOpen, setReleaseDialogOpen] = useState(false);
   const [crFormOpen, setCrFormOpen] = useState(false);
+  const [diffRange, setDiffRange] = useState<{ from: number; to: number } | null>(null);
 
   const deleteSkill = useDeleteSkill();
   const releaseSkill = useReleaseSkill();
@@ -134,7 +139,14 @@ export function SkillDetail({ skill }: Readonly<SkillDetailProps>) {
           <Button
             variant={isFollowing ? "secondary" : "default"}
             size="sm"
-            onClick={() => toggleFollow.mutate()}
+            onClick={async () => {
+              try {
+                await toggleFollow.mutateAsync();
+                toast.success(isFollowing ? "Unfollowed" : "Following!");
+              } catch (err) {
+                toast.error(err instanceof Error ? err.message : "Failed to update follow");
+              }
+            }}
             disabled={toggleFollow.isPending}
           >
             {isFollowing ? "Unfollow" : "Follow"}
@@ -193,11 +205,12 @@ export function SkillDetail({ skill }: Readonly<SkillDetailProps>) {
             Change Requests
             {skill._count?.changeRequests ? ` (${skill._count.changeRequests})` : ""}
           </TabsTrigger>
+          <TabsTrigger value="history">History</TabsTrigger>
           <TabsTrigger value="stats">Stats</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6 pt-4">
-          <SkillSpecViewer spec={skill.spec} />
+          <SkillSpecViewer spec={skill.spec} files={skill.files} />
           <Separator />
           <h2 className="text-lg font-semibold">
             Comments {skill._count?.comments ? `(${skill._count.comments})` : ""}
@@ -215,6 +228,24 @@ export function SkillDetail({ skill }: Readonly<SkillDetailProps>) {
             currentUserId={userId}
             isOwnerOrAdmin={isOwnerOrAdmin}
           />
+        </TabsContent>
+
+        <TabsContent value="history" className="space-y-4 pt-4">
+          {diffRange ? (
+            <VersionDiff
+              skillId={skill.id}
+              fromVersion={diffRange.from}
+              toVersion={diffRange.to}
+              onClose={() => setDiffRange(null)}
+            />
+          ) : (
+            <VersionHistory
+              skillId={skill.id}
+              currentVersion={skill.version}
+              onSelectVersion={(v) => setDiffRange({ from: v, to: v })}
+              onCompare={(from, to) => setDiffRange({ from, to })}
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="stats" className="pt-4">

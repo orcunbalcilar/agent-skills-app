@@ -1,16 +1,25 @@
 // src/features/skills/components/SkillSpecViewer.tsx
 "use client";
 
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { FileTree, type SkillFile } from "./FileTree";
+import { SkillCodeEditor } from "./SkillCodeEditor";
 import type { SkillSpec } from "@/lib/skill-schema";
 
 interface SkillSpecViewerProps {
   spec: SkillSpec | Record<string, unknown>;
+  files?: SkillFile[];
 }
 
-export function SkillSpecViewer({ spec }: Readonly<SkillSpecViewerProps>) {
+export function SkillSpecViewer({ spec, files }: Readonly<SkillSpecViewerProps>) {
   const s = spec as Partial<SkillSpec>;
+  const [selectedPath, setSelectedPath] = useState<string | null>(
+    files?.[0]?.path ?? null,
+  );
+
+  const selectedFile = files?.find((f) => f.path === selectedPath);
 
   return (
     <div className="space-y-4">
@@ -64,16 +73,42 @@ export function SkillSpecViewer({ spec }: Readonly<SkillSpecViewerProps>) {
         </div>
       )}
 
-      {s.body && (
-        <>
-          <Separator />
-          <div>
-            <h3 className="text-sm font-semibold text-muted-foreground mb-1">Body</h3>
-            <pre className="bg-muted rounded-md p-3 text-xs whitespace-pre-wrap overflow-auto max-h-64">
-              {s.body}
-            </pre>
+      <Separator />
+
+      {/* File Tree + Code Viewer */}
+      {files && files.length > 0 && (
+        <div>
+          <h3 className="text-sm font-semibold text-muted-foreground mb-2">Skill Files</h3>
+          <div className="flex gap-4">
+            <div className="shrink-0">
+              <FileTree
+                files={files}
+                selectedPath={selectedPath}
+                onSelect={setSelectedPath}
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              {selectedFile ? (
+                <SkillCodeEditor
+                  path={selectedFile.path}
+                  value={selectedFile.content}
+                  readOnly
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground">Select a file to view</p>
+              )}
+            </div>
           </div>
-        </>
+        </div>
+      )}
+
+      {(!files || files.length === 0) && s.body && (
+        <div>
+          <h3 className="text-sm font-semibold text-muted-foreground mb-1">Body</h3>
+          <pre className="bg-muted rounded-md p-3 text-xs whitespace-pre-wrap overflow-auto max-h-64">
+            {s.body}
+          </pre>
+        </div>
       )}
     </div>
   );

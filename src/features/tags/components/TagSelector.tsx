@@ -55,10 +55,10 @@ export function TagSelector({ selected, onChange, max = 10 }: Readonly<TagSelect
           <Badge
             key={tag.id}
             variant={selected.includes(tag.id) ? "default" : "outline"}
-            className="cursor-pointer"
+            className={`cursor-pointer ${tag.isSystem ? "border-primary/50" : ""}`}
             onClick={() => toggleTag(tag.id)}
           >
-            {tag.name}
+            {tag.isSystem && "⭐ "}{tag.name}
           </Badge>
         ))}
       </div>

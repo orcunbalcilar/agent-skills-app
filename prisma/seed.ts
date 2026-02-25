@@ -9,8 +9,10 @@ async function main() {
 
   // ── Tags ────────────────────────────────────────────────────────────────────
   const systemTagNames = [
-    "java", ".net", "nodejs", "web-development", "testing",
-    "documentation", "python", "go", "rust", "devops", "security", "data",
+    "ai", "devops", "frontend", "backend", "security",
+    "testing", "database", "cloud", "mobile", "data-science",
+    "java", ".net", "nodejs", "web-development",
+    "documentation", "python", "go", "rust",
   ];
   const tagRecords = await Promise.all(
     systemTagNames.map((name) =>

@@ -32,6 +32,7 @@ export default function EditSkillPage() {
           name: data.name,
           description: data.description,
           spec: (data as unknown as { spec: Record<string, unknown> }).spec ?? {},
+          files: (data as unknown as { files?: Array<{ path: string; content: string }> }).files ?? [],
           tags: data.tags.map((t) => t.tagId),
           status: data.status,
         }}
