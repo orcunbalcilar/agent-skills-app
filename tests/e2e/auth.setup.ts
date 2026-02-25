@@ -15,7 +15,7 @@ async function signIn(
   await page.goto("/auth/signin");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: /sign in/i }).click();
+  await page.getByRole("button", { name: /sign in \(credentials\)/i }).click();
   await expect(page).toHaveURL("/");
   await page.context().storageState({ path: storagePath });
 }

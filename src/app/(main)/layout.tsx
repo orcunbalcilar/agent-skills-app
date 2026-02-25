@@ -1,10 +1,25 @@
 // src/app/(main)/layout.tsx
 import { MainLayout } from "@/components/layout/MainLayout";
+import { auth } from "@/lib/auth";
 
-export default function MainGroupLayout({
+export default async function MainGroupLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <MainLayout>{children}</MainLayout>;
+  const session = await auth();
+  const user = session?.user
+    ? {
+        name: session.user.name ?? null,
+        email: session.user.email ?? null,
+        image: session.user.image ?? null,
+      }
+    : undefined;
+  const isAdmin = (session?.user as { role?: string } | undefined)?.role === "ADMIN";
+
+  return (
+    <MainLayout user={user} isAdmin={isAdmin}>
+      {children}
+    </MainLayout>
+  );
 }

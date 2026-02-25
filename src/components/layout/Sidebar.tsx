@@ -11,8 +11,6 @@ const NAV_ITEMS = [
   { href: "/", label: "Home", icon: "🏠" },
   { href: "/skills", label: "Discover Skills", icon: "🔍" },
   { href: "/skills/new", label: "Create Skill", icon: "✨" },
-  { href: "/notifications", label: "Notifications", icon: "🔔" },
-  { href: "/profile", label: "Profile", icon: "👤" },
 ];
 
 const ADMIN_ITEMS = [

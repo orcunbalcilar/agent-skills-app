@@ -123,12 +123,48 @@ describe("POST /api/v1/skills", () => {
 
     const req = new NextRequest("http://localhost/api/v1/skills", {
       method: "POST",
-      body: JSON.stringify({ name: "test", description: "desc", spec: { name: "test" } }),
+      body: JSON.stringify({
+        name: "test",
+        description: "A valid description",
+        spec: { name: "test", description: "A valid description" },
+      }),
     });
     const res = await POST(req);
     const body = await res.json();
 
     expect(res.status).toBe(201);
     expect(body.data.id).toBe("s1");
+  });
+
+  it("should return 422 when spec has invalid name", async () => {
+    vi.mocked(auth).mockResolvedValue({ user: { id: "u1" }, expires: "" } as never);
+
+    const req = new NextRequest("http://localhost/api/v1/skills", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "Invalid-Name",
+        description: "desc",
+        spec: { name: "Invalid-Name" },
+      }),
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(422);
+    const body = await res.json();
+    expect(body.error).toContain("Invalid skill spec");
+  });
+
+  it("should return 400 when description is empty", async () => {
+    vi.mocked(auth).mockResolvedValue({ user: { id: "u1" }, expires: "" } as never);
+
+    const req = new NextRequest("http://localhost/api/v1/skills", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "my-skill",
+        description: "",
+        spec: {},
+      }),
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(400);
   });
 });

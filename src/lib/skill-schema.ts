@@ -1,10 +1,8 @@
 // src/lib/skill-schema.ts
 // Zod schema based on agentskills.io specification
-// Fields: name (1-64 chars, lowercase alphanumeric+hyphens), description (1-1024 chars),
-//         license (optional), compatibility (optional, max 500 chars),
-//         metadata (optional key-value map), allowed-tools (optional),
-//         body (markdown content)
+// Supports both JSON spec and SKILL.md folder upload (zip) validation.
 import { z } from "zod";
+import yaml from "js-yaml";
 
 const MAX_BYTES = 512 * 1024; // 512 KB
 
@@ -56,4 +54,148 @@ export function validateSkillSpec(data: unknown): {
   }
   const messages = result.error.issues.map((e: { message: string }) => e.message).join("; ");
   return { success: false, error: messages };
+}
+
+// ---------------------------------------------------------------------------
+// SKILL.md frontmatter + body parsing (Agent Skills specification)
+// ---------------------------------------------------------------------------
+
+const FRONTMATTER_REGEX = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/;
+
+/**
+ * Parse a SKILL.md file content into frontmatter fields + body.
+ * Returns the parsed SkillSpec or an error string.
+ */
+export function parseSkillMd(content: string): {
+  success: boolean;
+  data?: SkillSpec;
+  error?: string;
+} {
+  const match = FRONTMATTER_REGEX.exec(content);
+  if (!match) {
+    return { success: false, error: "SKILL.md must contain YAML frontmatter between --- delimiters" };
+  }
+
+  const [, frontmatterRaw, bodyRaw] = match;
+
+  let frontmatter: Record<string, unknown>;
+  try {
+    frontmatter = yaml.load(frontmatterRaw) as Record<string, unknown>;
+  } catch {
+    return { success: false, error: "Invalid YAML in SKILL.md frontmatter" };
+  }
+
+  if (!frontmatter || typeof frontmatter !== "object") {
+    return { success: false, error: "SKILL.md frontmatter must be a YAML mapping" };
+  }
+
+  // Assemble the spec from frontmatter + body
+  const spec: Record<string, unknown> = { ...frontmatter };
+  const body = bodyRaw.trim();
+  if (body) {
+    spec.body = body;
+  }
+
+  // Coerce metadata values to strings (YAML may parse numbers)
+  if (spec.metadata && typeof spec.metadata === "object") {
+    const md = spec.metadata as Record<string, unknown>;
+    for (const key of Object.keys(md)) {
+      md[key] = String(md[key]);
+    }
+  }
+
+  return validateSkillSpec(spec);
+}
+
+// ---------------------------------------------------------------------------
+// Zip-based skill folder validation
+// ---------------------------------------------------------------------------
+
+/** Allowed top-level directories inside a skill folder (per spec) */
+const ALLOWED_DIRS = new Set(["scripts", "references", "assets"]);
+
+export interface SkillFolderEntry {
+  path: string;
+  content: string;
+}
+
+function detectRootPrefix(entries: SkillFolderEntry[]): string {
+  const firstPath = entries[0].path;
+  const slashIdx = firstPath.indexOf("/");
+  if (slashIdx === -1) return ""; // No directory prefix
+  const topLevel = firstPath.substring(0, slashIdx);
+  const allUnderOneDir = entries.every((e) => e.path.startsWith(topLevel + "/"));
+  return allUnderOneDir ? topLevel + "/" : "";
+}
+
+function checkDirectories(relativePaths: string[]): string | null {
+  for (const rp of relativePaths) {
+    if (rp === "SKILL.md") continue;
+    const parts = rp.split("/");
+    if (parts.length > 1 && !ALLOWED_DIRS.has(parts[0])) {
+      return `Unsupported directory "${parts[0]}". Allowed: scripts/, references/, assets/`;
+    }
+  }
+  return null;
+}
+
+/**
+ * Validate a skill folder's file listing extracted from a zip.
+ * `entries` should contain { path, content } pairs with paths relative to
+ * the zip root. The function finds the SKILL.md, validates its content,
+ * and ensures the directory name matches the skill name.
+ */
+export function validateSkillFolder(entries: SkillFolderEntry[]): {
+  success: boolean;
+  data?: SkillSpec;
+  files?: SkillFolderEntry[];
+  error?: string;
+} {
+  if (entries.length === 0) {
+    return { success: false, error: "Zip archive is empty" };
+  }
+
+  const rootPrefix = detectRootPrefix(entries);
+
+  // Find SKILL.md
+  const skillMdEntry = entries.find(
+    (e) => e.path === rootPrefix + "SKILL.md" || e.path === "SKILL.md"
+  );
+  if (!skillMdEntry) {
+    return { success: false, error: "Zip must contain a SKILL.md file at the skill root" };
+  }
+
+  // Parse and validate SKILL.md content
+  const parseResult = parseSkillMd(skillMdEntry.content);
+  if (!parseResult.success || !parseResult.data) {
+    return { success: false, error: parseResult.error };
+  }
+
+  // If the files are inside a named directory, the directory name must match the skill name
+  if (rootPrefix) {
+    const dirName = rootPrefix.replace(/\/$/, "");
+    if (dirName !== parseResult.data.name) {
+      return {
+        success: false,
+        error: `Directory name "${dirName}" must match skill name "${parseResult.data.name}"`,
+      };
+    }
+  }
+
+  // Validate that only allowed directories exist
+  const relativePaths = entries.map((e) =>
+    rootPrefix ? e.path.slice(rootPrefix.length) : e.path
+  );
+  const dirError = checkDirectories(relativePaths);
+  if (dirError) {
+    return { success: false, error: dirError };
+  }
+
+  // Normalize entries to be relative to skill root
+  const normalizedEntries = entries.map((e) => ({
+    path: rootPrefix ? e.path.slice(rootPrefix.length) : e.path,
+    content: e.content,
+  }));
+
+  return { success: true, data: parseResult.data, files: normalizedEntries };
 }

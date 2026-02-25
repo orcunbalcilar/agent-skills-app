@@ -1,13 +1,9 @@
 // src/components/layout/Header.tsx
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
-import { useState, useCallback } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,9 +11,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
-import { useUIStore } from "@/stores/ui-store";
+import { Input } from "@/components/ui/input";
 import { useNotificationStore } from "@/stores/notification-store";
+import { useUIStore } from "@/stores/ui-store";
+import { signOut } from "next-auth/react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
 
 interface HeaderUser {
   name?: string | null;
@@ -43,7 +43,7 @@ export function Header({ user }: Readonly<HeaderProps>) {
         router.push(`/skills?q=${encodeURIComponent(search.trim())}`);
       }
     },
-    [router, search]
+    [router, search],
   );
 
   const initials = user?.name
@@ -81,43 +81,47 @@ export function Header({ user }: Readonly<HeaderProps>) {
         </Button>
 
         {user ? (
-          <>
-            <Link href="/notifications">
-              <Button variant="ghost" size="sm" aria-label="Notifications" className="relative">
-                🔔
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="relative h-8 w-8 rounded-full p-0"
+                aria-label="User menu"
+              >
+                <Avatar className="h-8 w-8">
+                  <AvatarImage
+                    src={user.image ?? undefined}
+                    alt={user.name ?? "User"}
+                  />
+                  <AvatarFallback>{initials ?? "U"}</AvatarFallback>
+                </Avatar>
                 {unreadCount > 0 && (
                   <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-xs">
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </Badge>
                 )}
               </Button>
-            </Link>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 rounded-full p-0" aria-label="User menu">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.image ?? undefined} alt={user.name ?? "User"} />
-                    <AvatarFallback>{initials ?? "U"}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <Link href="/profile">Profile</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/notifications/preferences">Notification Preferences</Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => signOut({ callbackUrl: "/auth/signin" })}
-                >
-                  Sign out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link href="/profile">Profile</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/notifications">Notifications</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/notifications/preferences">
+                  Notification Preferences
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => signOut({ callbackUrl: "/auth/signin" })}
+              >
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         ) : (
           <Button asChild size="sm">
             <Link href="/auth/signin">Sign in</Link>

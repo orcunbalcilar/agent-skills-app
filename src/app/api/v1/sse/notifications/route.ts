@@ -1,5 +1,4 @@
 // src/app/api/v1/sse/notifications/route.ts
-export const runtime = "nodejs";
 
 import { NextRequest } from "next/server";
 import { requireAuth } from "@/lib/api-helpers";

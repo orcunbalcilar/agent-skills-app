@@ -1,9 +1,8 @@
 // src/app/api/v1/users/[id]/skills/route.ts
-export const runtime = "nodejs";
 
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { checkLimit, getIp } from "@/lib/api-helpers";
+import { prisma } from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -45,6 +44,9 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }

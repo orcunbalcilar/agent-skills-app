@@ -1,13 +1,14 @@
 // src/app/api/v1/skills/route.ts
-export const runtime = "nodejs";
 
-import type { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
 import { searchSkills } from "@/lib/search";
+import { validateSkillSpec } from "@/lib/skill-schema";
 import { pgNotify } from "@/lib/sse";
+
+type TxClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
 export async function GET(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for") ?? "unknown";
@@ -68,7 +69,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "name, description, and spec are required" }, { status: 400 });
     }
 
-    const skill = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    // Validate spec against Agent Skills specification
+    const specToValidate = { ...body.spec, name: body.name, description: body.description };
+    const validation = validateSkillSpec(specToValidate);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: "Invalid skill spec", details: validation.error },
+        { status: 422 }
+      );
+    }
+
+    const skill = await prisma.$transaction(async (tx: TxClient) => {
       const created = await tx.skill.create({
         data: {
           name: body.name!,
@@ -83,14 +94,14 @@ export async function POST(req: NextRequest) {
 
       if (body.tags?.length) {
         const tags = await tx.tag.findMany({ where: { name: { in: body.tags } } });
-        const existing = new Set(tags.map((t) => t.name));
-        const newTagNames = body.tags.filter((t) => !existing.has(t)).slice(0, 10 - tags.length);
+        const existing = new Set(tags.map((t: { name: string }) => t.name));
+        const newTagNames = body.tags.filter((t: string) => !existing.has(t)).slice(0, 10 - tags.length);
         const createdTags = await Promise.all(
-          newTagNames.map((name) => tx.tag.create({ data: { name } }))
+          newTagNames.map((name: string) => tx.tag.create({ data: { name } }))
         );
         const allTags = [...tags, ...createdTags];
         await tx.skillTag.createMany({
-          data: allTags.map((t) => ({ skillId: created.id, tagId: t.id })),
+          data: allTags.map((t: { id: string }) => ({ skillId: created.id, tagId: t.id })),
         });
       }
 

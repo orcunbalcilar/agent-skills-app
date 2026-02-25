@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -25,11 +24,7 @@ interface SkillFormProps {
   };
 }
 
-const MAX_BYTES = 512 * 1024;
-
-function byteSize(str: string): number {
-  return new Blob([str]).size;
-}
+const MAX_ZIP_BYTES = 10 * 1024 * 1024; // 10 MB
 
 export function SkillForm({ mode, initialData }: Readonly<SkillFormProps>) {
   const router = useRouter();
@@ -37,80 +32,82 @@ export function SkillForm({ mode, initialData }: Readonly<SkillFormProps>) {
   const updateSkill = useUpdateSkill();
   const releaseSkill = useReleaseSkill();
 
-  const [name, setName] = useState(initialData?.name ?? "");
-  const [description, setDescription] = useState(initialData?.description ?? "");
-  const [specJson, setSpecJson] = useState(
-    initialData?.spec ? JSON.stringify(initialData.spec, null, 2) : "{}"
-  );
   const [selectedTags, setSelectedTags] = useState<string[]>(initialData?.tags ?? []);
   const [error, setError] = useState<string | null>(null);
-  const [jsonError, setJsonError] = useState<string | null>(null);
-  const [releaseDialogOpen, setReleaseDialogOpen] = useState(false);
-
-  const specBytes = byteSize(specJson);
-  const specOverLimit = specBytes > MAX_BYTES;
-
-  const validateJson = useCallback((value: string) => {
-    try {
-      JSON.parse(value);
-      setJsonError(null);
-      return true;
-    } catch {
-      setJsonError("Invalid JSON");
-      return false;
-    }
-  }, []);
-
-  const handleSpecChange = useCallback(
-    (value: string) => {
-      setSpecJson(value);
-      validateJson(value);
-    },
-    [validateJson]
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [parsedSpec, setParsedSpec] = useState<Record<string, unknown> | null>(
+    initialData?.spec ?? null
   );
+  const [releaseDialogOpen, setReleaseDialogOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const handleUpload = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (!file) return;
-      if (file.size > MAX_BYTES) {
-        setError("File exceeds 512 KB limit");
+
+      if (file.size > MAX_ZIP_BYTES) {
+        setError("Zip file exceeds 10 MB limit");
         return;
       }
-      file.text().then((text) => {
-        handleSpecChange(text);
-        try {
-          const parsed = JSON.parse(text) as Record<string, unknown>;
-          if (typeof parsed.name === "string") setName(parsed.name);
-          if (typeof parsed.description === "string") setDescription(parsed.description);
-        } catch {
-          // keep raw text in spec editor
+
+      if (!file.name.endsWith(".zip")) {
+        setError("Please upload a .zip file containing your skill folder");
+        return;
+      }
+
+      setUploading(true);
+      setError(null);
+
+      try {
+        const form = new FormData();
+        form.append("file", file);
+
+        const res = await fetch("/api/v1/upload", { method: "POST", body: form });
+        const json = await res.json() as {
+          data?: Record<string, unknown>;
+          error?: string;
+          details?: string;
+        };
+
+        if (!res.ok) {
+          setError(json.details ?? json.error ?? "Upload validation failed");
+          setParsedSpec(null);
+          setUploadedFile(null);
+          return;
         }
-      }).catch(() => {
-        setError("Failed to read file");
-      });
+
+        setParsedSpec(json.data ?? null);
+        setUploadedFile(file);
+      } catch {
+        setError("Failed to upload file");
+        setParsedSpec(null);
+        setUploadedFile(null);
+      } finally {
+        setUploading(false);
+      }
     },
-    [handleSpecChange]
+    []
   );
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
 
-    if (!validateJson(specJson)) return;
-    if (specOverLimit) {
-      setError("Spec exceeds 512 KB limit");
+    if (!parsedSpec) {
+      setError("Please upload a valid skill folder (.zip) first");
       return;
     }
 
-    const spec = JSON.parse(specJson) as Record<string, unknown>;
+    const name = parsedSpec.name as string;
+    const description = parsedSpec.description as string;
 
     try {
       if (mode === "create") {
         const result = await createSkill.mutateAsync({
           name,
           description,
-          spec: { ...spec, name, description },
+          spec: parsedSpec,
           tags: selectedTags,
         });
         const data = result.data as { id: string };
@@ -120,7 +117,7 @@ export function SkillForm({ mode, initialData }: Readonly<SkillFormProps>) {
           id: initialData.id,
           name,
           description,
-          spec: { ...spec, name, description },
+          spec: parsedSpec,
           tags: selectedTags,
         });
         router.push(`/skills/${initialData.id}`);
@@ -158,33 +155,38 @@ export function SkillForm({ mode, initialData }: Readonly<SkillFormProps>) {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="skill-name">Name</Label>
+              <Label htmlFor="skill-zip">Upload Skill Folder (.zip)</Label>
+              <p className="text-xs text-muted-foreground">
+                Upload a zip file containing your skill folder with a SKILL.md file.
+                The SKILL.md must have valid YAML frontmatter with name and description.
+                Optional dirs: scripts/, references/, assets/
+              </p>
               <Input
-                id="skill-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="my-skill-name"
-                pattern="^[a-z0-9]+(-[a-z0-9]+)*$"
-                required
+                id="skill-zip"
+                type="file"
+                accept=".zip"
+                onChange={handleUpload}
+                disabled={uploading}
               />
-              <p className="text-xs text-muted-foreground">
-                Lowercase alphanumeric with hyphens (e.g. my-skill-name)
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="skill-description">Description</Label>
-              <Textarea
-                id="skill-description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Describe what this skill does..."
-                maxLength={1024}
-                required
-              />
-              <p className="text-xs text-muted-foreground">
-                {description.length}/1024 characters
-              </p>
+              {uploading && <p className="text-xs text-muted-foreground">Validating skill folder...</p>}
+              {uploadedFile && parsedSpec && (
+                <div className="rounded border p-3 text-sm space-y-1">
+                  <p><strong>Name:</strong> {parsedSpec.name as string}</p>
+                  <p><strong>Description:</strong> {parsedSpec.description as string}</p>
+                  {typeof parsedSpec.license === "string" && (
+                    <p><strong>License:</strong> {parsedSpec.license}</p>
+                  )}
+                  {typeof parsedSpec.compatibility === "string" && (
+                    <p><strong>Compatibility:</strong> {parsedSpec.compatibility}</p>
+                  )}
+                  {typeof parsedSpec.body === "string" && (
+                    <p className="text-muted-foreground">
+                      Body: {parsedSpec.body.slice(0, 100)}
+                      {parsedSpec.body.length > 100 ? "..." : ""}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -192,40 +194,8 @@ export function SkillForm({ mode, initialData }: Readonly<SkillFormProps>) {
               <TagSelector selected={selectedTags} onChange={setSelectedTags} max={10} />
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="skill-spec">Spec (JSON)</Label>
-                <div className="flex items-center gap-2">
-                  <span className={`text-xs ${specOverLimit ? "text-destructive" : "text-muted-foreground"}`}>
-                    {Math.ceil(specBytes / 1024)} KB / 512 KB
-                  </span>
-                  <Label htmlFor="spec-upload" className="cursor-pointer">
-                    <Button type="button" variant="outline" size="sm" asChild>
-                      <span>Upload JSON</span>
-                    </Button>
-                    <input
-                      id="spec-upload"
-                      type="file"
-                      accept=".json"
-                      title="Upload JSON spec file"
-                      onChange={handleUpload}
-                      className="sr-only"
-                    />
-                  </Label>
-                </div>
-              </div>
-              <Textarea
-                id="skill-spec"
-                value={specJson}
-                onChange={(e) => handleSpecChange(e.target.value)}
-                className="font-mono text-sm min-h-50"
-                spellCheck={false}
-              />
-              {jsonError && <p className="text-xs text-destructive">{jsonError}</p>}
-            </div>
-
             <div className="flex gap-2">
-              <Button type="submit" disabled={isPending || specOverLimit}>
+              <Button type="submit" disabled={isPending || !parsedSpec || uploading}>
                 {isPending ? "Saving..." : "Save as Template"}
               </Button>
               {mode === "edit" && initialData?.status === "TEMPLATE" && (

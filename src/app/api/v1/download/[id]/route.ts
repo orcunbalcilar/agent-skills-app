@@ -1,12 +1,21 @@
 // src/app/api/v1/download/[id]/route.ts
-export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
+import JSZip from "jszip";
+import yaml from "js-yaml";
 import { prisma } from "@/lib/prisma";
 import { checkLimit, getIp } from "@/lib/api-helpers";
 import { pgNotify } from "@/lib/sse";
 
 type RouteParams = { params: Promise<{ id: string }> };
+
+function buildSkillMd(spec: Record<string, unknown>): string {
+  const { body, ...frontmatterFields } = spec;
+  const fm = yaml.dump(frontmatterFields, { lineWidth: -1 }).trim();
+  const bodyStr = typeof body === "string" ? body.trim() : "";
+  const bodySuffix = bodyStr ? "\n" + bodyStr + "\n" : "";
+  return `---\n${fm}\n---\n${bodySuffix}`;
+}
 
 export async function GET(req: NextRequest, { params }: RouteParams) {
   const limit = checkLimit(`GET /api/v1/download/[id] ${getIp(req)}`);
@@ -31,10 +40,18 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 
     await pgNotify("global_stats", JSON.stringify({ event: "skill_downloaded", skillId: id }));
 
-    return new NextResponse(JSON.stringify(skill.spec, null, 2), {
+    // Build a zip containing the skill folder with SKILL.md
+    const spec = skill.spec as Record<string, unknown>;
+    const zip = new JSZip();
+    const folder = zip.folder(skill.name)!;
+    folder.file("SKILL.md", buildSkillMd(spec));
+
+    const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
+
+    return new NextResponse(zipBuffer, {
       headers: {
-        "Content-Type": "application/json",
-        "Content-Disposition": `attachment; filename="${skill.name}.json"`,
+        "Content-Type": "application/zip",
+        "Content-Disposition": `attachment; filename="${skill.name}.zip"`,
       },
     });
   } catch (err) {
