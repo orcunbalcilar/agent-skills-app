@@ -4,7 +4,7 @@ import { test, expect } from "@playwright/test";
 test.describe("Notifications", () => {
   test("should show notifications page", async ({ page }) => {
     await page.goto("/notifications");
-    await expect(page.getByText(/notification/i)).toBeVisible();
+    await expect(page.getByRole("heading", { name: /notifications/i })).toBeVisible();
   });
 
   test("should mark a notification as read", async ({ page }) => {

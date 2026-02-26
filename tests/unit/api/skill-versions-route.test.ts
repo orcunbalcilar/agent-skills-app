@@ -89,6 +89,14 @@ describe("GET /api/v1/skills/[id]/versions", () => {
       expect.objectContaining({ orderBy: { version: "desc" } }),
     );
   });
+
+  it("should handle errors gracefully", async () => {
+    vi.mocked(prisma.skillVersion.findMany).mockRejectedValue(new Error("DB error"));
+
+    const req = new NextRequest("http://localhost/api/v1/skills/s1/versions");
+    const res = await listVersions(req, { params: Promise.resolve({ id: "s1" }) });
+    expect(res.status).toBe(500);
+  });
 });
 
 describe("GET /api/v1/skills/[id]/versions/[version]", () => {
@@ -145,5 +153,13 @@ describe("GET /api/v1/skills/[id]/versions/[version]", () => {
     expect(body.version).toBe(1);
     expect(body.spec).toEqual({ name: "test-skill" });
     expect(body.files).toHaveLength(1);
+  });
+
+  it("should handle errors gracefully", async () => {
+    vi.mocked(prisma.skillVersion.findFirst).mockRejectedValue(new Error("DB error"));
+
+    const req = new NextRequest("http://localhost/api/v1/skills/s1/versions/1");
+    const res = await getVersion(req, { params: Promise.resolve({ id: "s1", version: "1" }) });
+    expect(res.status).toBe(500);
   });
 });

@@ -243,6 +243,36 @@ allowed-tools: Bash(git:*) Read
     expect(result.error).toContain("YAML frontmatter");
   });
 
+  it("should reject frontmatter that parses to a non-object (scalar)", () => {
+    const content = `---
+just a plain string
+---
+`;
+    const result = parseSkillMd(content);
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("YAML mapping");
+  });
+
+  it("should reject frontmatter that parses to null", () => {
+    const content = `---
+~
+---
+`;
+    const result = parseSkillMd(content);
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("YAML mapping");
+  });
+
+  it("should reject frontmatter that parses to a scalar string", () => {
+    const content = `---
+just a bare string
+---
+`;
+    const result = parseSkillMd(content);
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("YAML mapping");
+  });
+
   it("should reject invalid YAML in frontmatter", () => {
     const content = `---
 name: [invalid yaml

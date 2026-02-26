@@ -4,21 +4,23 @@ import { test, expect } from "@playwright/test";
 test.describe("Change requests", () => {
   test("should submit a change request", async ({ page }) => {
     await page.goto("/skills");
-    await page.getByRole("link").first().click();
-    await page.getByRole("tab", { name: /change request/i }).click();
-    await page.getByRole("button", { name: /submit.*request/i }).click();
+    await page.locator("main a[href^='/skills/']").first().click();
+    // Click "Submit Change Request" button in the action bar to open dialog
+    await page.getByRole("button", { name: /submit change request/i }).click();
 
     await page.getByLabel(/title/i).fill("E2E Change Request");
     await page.getByLabel(/description/i).fill("This is a test change request");
-    await page.getByRole("button", { name: /submit/i }).click();
+    await page.getByRole("button", { name: /^submit$/i }).click();
 
-    await expect(page.getByText("E2E Change Request")).toBeVisible();
+    // Switch to Change Requests tab to see it
+    await page.getByRole("tab", { name: /change requests/i }).click();
+    await expect(page.getByText("E2E Change Request").first()).toBeVisible();
   });
 
   test("should withdraw own change request", async ({ page }) => {
     await page.goto("/skills");
-    await page.getByRole("link").first().click();
-    await page.getByRole("tab", { name: /change request/i }).click();
+    await page.locator("main a[href^='/skills/']").first().click();
+    await page.getByRole("tab", { name: /change requests/i }).click();
 
     const withdrawBtn = page.getByRole("button", { name: /withdraw/i }).first();
     if (await withdrawBtn.isVisible()) {
@@ -33,8 +35,8 @@ test.describe("Change request approval", () => {
 
   test("admin should approve a change request and version increments", async ({ page }) => {
     await page.goto("/skills");
-    await page.getByRole("link").first().click();
-    await page.getByRole("tab", { name: /change request/i }).click();
+    await page.locator("main a[href^='/skills/']").first().click();
+    await page.getByRole("tab", { name: /change requests/i }).click();
 
     const approveBtn = page.getByRole("button", { name: /approve/i }).first();
     if (await approveBtn.isVisible()) {
@@ -45,8 +47,8 @@ test.describe("Change request approval", () => {
 
   test("admin should reject a change request", async ({ page }) => {
     await page.goto("/skills");
-    await page.getByRole("link").first().click();
-    await page.getByRole("tab", { name: /change request/i }).click();
+    await page.locator("main a[href^='/skills/']").first().click();
+    await page.getByRole("tab", { name: /change requests/i }).click();
 
     const rejectBtn = page.getByRole("button", { name: /reject/i }).first();
     if (await rejectBtn.isVisible()) {

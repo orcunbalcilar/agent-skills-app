@@ -19,18 +19,18 @@ export default defineConfig({
         statements: 90,
       },
       exclude: [
-        "src/components/ui/**",
-        "src/app/**/page.tsx",
+        "components/ui/**",
+        "app/**/page.tsx",
         "prisma/**",
         "tests/**",
         "**/*.config.*",
-        "src/app/layout.tsx",
+        "app/layout.tsx",
       ],
     },
   },
   resolve: {
     alias: {
-      "@": resolve(__dirname, "./src"),
+      "@": resolve(__dirname, "."),
     },
   },
 });

@@ -7,16 +7,16 @@ test.describe("Statistics", () => {
     await expect(page.getByText(/skill|total|download/i).first()).toBeVisible();
   });
 
-  test("skill stats page should render charts", async ({ page }) => {
+  test("skill detail page should show stats tab", async ({ page }) => {
     await page.goto("/skills");
-    await page.getByRole("link").first().click();
-    await page.getByRole("tab", { name: /stats/i }).click();
-
-    // Charts should render (Recharts SVG)
-    await page.waitForTimeout(1000);
-    const chart = page.locator(".recharts-wrapper").first();
-    if (await chart.isVisible()) {
-      await expect(chart).toBeVisible();
-    }
+    await page.locator("main a[href^='/skills/']").first().click();
+    // The Stats tab should be visible in the skill detail
+    const statsTab = page.getByRole("tab", { name: /stats/i });
+    await expect(statsTab).toBeVisible();
+    await statsTab.click();
+    await page.waitForTimeout(500);
+    // Stats content should show downloads count or loading message
+    const statsContent = page.getByText(/download|loading stats/i).first();
+    await expect(statsContent).toBeVisible();
   });
 });

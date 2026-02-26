@@ -1,5 +1,5 @@
 // tests/e2e/auth.setup.ts
-import { test as setup, expect } from "@playwright/test";
+import { test as setup } from "@playwright/test";
 
 const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL ?? "admin@test.local";
 const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? "e2e-admin-password-123";
@@ -16,7 +16,7 @@ async function signIn(
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: /sign in \(credentials\)/i }).click();
-  await expect(page).toHaveURL("/");
+  await page.waitForURL((url) => !url.pathname.startsWith("/auth"));
   await page.context().storageState({ path: storagePath });
 }
 

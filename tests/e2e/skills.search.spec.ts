@@ -4,13 +4,14 @@ import { test, expect } from "@playwright/test";
 test.describe("Skill search and filtering", () => {
   test("should search skills by text", async ({ page }) => {
     await page.goto("/skills");
-    await page.getByPlaceholder(/search/i).fill("test");
+    // Use the header search input (type=search with aria-label)
+    await page.getByRole("searchbox", { name: /search skills/i }).fill("test");
     await page.keyboard.press("Enter");
 
     // Results should filter
     await page.waitForTimeout(500);
     // We just verify the page doesn't error
-    await expect(page.getByText(/skills/i).first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: /discover skills/i })).toBeVisible();
   });
 
   test("should filter by tag", async ({ page }) => {

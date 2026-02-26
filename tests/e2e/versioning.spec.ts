@@ -4,16 +4,14 @@ import { test, expect } from "@playwright/test";
 test.describe("Skill versioning", () => {
   test("should show History tab on skill detail page", async ({ page }) => {
     await page.goto("/skills");
-    const link = page.getByRole("link").first();
-    if (await link.isVisible()) {
-      await link.click();
-      await expect(page.getByRole("tab", { name: /history/i })).toBeVisible();
-    }
+    await page.locator("main a[href^='/skills/']").first().click();
+    await page.waitForTimeout(500);
+    await expect(page.getByRole("tab", { name: /history/i })).toBeVisible();
   });
 
   test("should display version history when History tab is clicked", async ({ page }) => {
     await page.goto("/skills");
-    const link = page.getByRole("link").first();
+    const link = page.locator("main a[href^='/skills/']").first();
     if (await link.isVisible()) {
       await link.click();
       const historyTab = page.getByRole("tab", { name: /history/i });

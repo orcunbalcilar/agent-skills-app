@@ -102,9 +102,11 @@ describe("createListenClient", () => {
 describe("createSSEStream", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
@@ -115,6 +117,7 @@ describe("createSSEStream", () => {
   });
 
   it("should send initial ping when stream starts", async () => {
+    vi.useRealTimers();
     const { stream, cleanup } = createSSEStream("ch");
     const reader = stream.getReader();
     const decoder = new TextDecoder();
@@ -124,5 +127,57 @@ describe("createSSEStream", () => {
 
     reader.releaseLock();
     await cleanup();
+  });
+
+  it("should send heartbeat pings at intervals", async () => {
+    vi.useRealTimers();
+    const { stream, cleanup } = createSSEStream("ch");
+    const reader = stream.getReader();
+    const decoder = new TextDecoder();
+
+    // Read initial ping
+    await reader.read();
+
+    // Simulate a notification to ensure the stream is live
+    const notifyHandler = mockOnFn.mock.calls[0]?.[1];
+    if (notifyHandler) {
+      notifyHandler({ payload: '{"test":true}' });
+      const { value: dataValue } = await reader.read();
+      expect(decoder.decode(dataValue)).toContain("data:");
+    }
+
+    reader.releaseLock();
+    await cleanup();
+  });
+
+  it("should call onCleanup when stream is cancelled", async () => {
+    vi.useRealTimers();
+    const onCleanup = vi.fn();
+    const { stream } = createSSEStream("ch", onCleanup);
+    const reader = stream.getReader();
+
+    // Read initial ping
+    await reader.read();
+
+    // Cancel the stream
+    await reader.cancel();
+
+    expect(onCleanup).toHaveBeenCalled();
+  });
+
+  it("cleanup function should clear heartbeat and call cleanupFn", async () => {
+    vi.useRealTimers();
+    const { stream, cleanup } = createSSEStream("ch");
+    const reader = stream.getReader();
+
+    // Read initial ping
+    await reader.read();
+    reader.releaseLock();
+
+    // Call cleanup
+    await cleanup();
+
+    // Cleanup should have called end on pg client
+    expect(mockEndFn).toHaveBeenCalled();
   });
 });

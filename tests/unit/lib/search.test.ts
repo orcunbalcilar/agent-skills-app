@@ -98,4 +98,75 @@ describe("searchSkills", () => {
       })
     );
   });
+
+  it("should filter by status TEMPLATE with userId", async () => {
+    await searchSkills({ status: "TEMPLATE", userId: "u1" });
+
+    const call = vi.mocked(prisma.skill.findMany).mock.calls[0][0];
+    const where = call?.where as Record<string, unknown>;
+    // Should include TEMPLATE status + owner filter
+    expect(where).toHaveProperty("status", "TEMPLATE");
+    expect(where).toHaveProperty("owners");
+  });
+
+  it("should filter by TEMPLATE status without userId", async () => {
+    await searchSkills({ status: "TEMPLATE" });
+
+    const call = vi.mocked(prisma.skill.findMany).mock.calls[0][0];
+    const where = call?.where as Record<string, unknown>;
+    expect(where).toHaveProperty("status", "TEMPLATE");
+  });
+
+  it("should use OR filter when userId is provided without status", async () => {
+    await searchSkills({ userId: "u1" });
+
+    const call = vi.mocked(prisma.skill.findMany).mock.calls[0][0];
+    const where = call?.where as Record<string, unknown>;
+    expect(where).toHaveProperty("OR");
+  });
+
+  it("should handle query with whitespace trimming", async () => {
+    await searchSkills({ query: "  hello  " });
+
+    const call = vi.mocked(prisma.skill.findMany).mock.calls[0][0];
+    const where = call?.where as Record<string, unknown>;
+    expect(where).toHaveProperty("AND");
+  });
+
+  it("should ignore empty query string", async () => {
+    await searchSkills({ query: "   " });
+
+    const call = vi.mocked(prisma.skill.findMany).mock.calls[0][0];
+    const where = call?.where as Record<string, unknown>;
+    // Should not have AND because query is blank after trim
+    expect(where).toHaveProperty("status", "RELEASED");
+  });
+
+  it("should filter by ownerId", async () => {
+    await searchSkills({ ownerId: "owner1" });
+
+    const call = vi.mocked(prisma.skill.findMany).mock.calls[0][0];
+    const where = call?.where as { AND?: unknown[] };
+    expect(where.AND).toBeDefined();
+  });
+
+  it("should sort by most_followed", async () => {
+    await searchSkills({ sort: "most_followed" });
+
+    expect(prisma.skill.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderBy: { followers: { _count: "desc" } },
+      })
+    );
+  });
+
+  it("should sort by recently_updated", async () => {
+    await searchSkills({ sort: "recently_updated" });
+
+    expect(prisma.skill.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderBy: { updatedAt: "desc" },
+      })
+    );
+  });
 });

@@ -1,98 +1,170 @@
 // tests/unit/lib/auth-session.test.ts
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+const { mockFindUnique, mockCreate, capturedCallbacks } = vi.hoisted(() => ({
+  mockFindUnique: vi.fn(),
+  mockCreate: vi.fn(),
+  capturedCallbacks: {} as Record<string, (...args: never[]) => unknown>,
+}));
+
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     user: {
-      findUnique: vi.fn(),
-      create: vi.fn(),
+      findUnique: (...args: unknown[]) => mockFindUnique(...args),
+      create: (...args: unknown[]) => mockCreate(...args),
     },
   },
 }));
 
-vi.mock("next-auth", () => {
-  // Capture the callbacks so we can test them
-  return {
-    default: vi.fn((config) => {
-      // Store callbacks for testing
-      (globalThis as Record<string, unknown>).__authCallbacks = config.callbacks;
-      return {
-        handlers: {},
-        auth: vi.fn(),
-        signIn: vi.fn(),
-        signOut: vi.fn(),
-      };
-    }),
-  };
-});
+vi.mock("next-auth", () => ({
+  default: vi.fn((config: { callbacks?: Record<string, (...args: never[]) => unknown> }) => {
+    if (config.callbacks) {
+      Object.assign(capturedCallbacks, config.callbacks);
+    }
+    return { handlers: {}, auth: vi.fn(), signIn: vi.fn(), signOut: vi.fn() };
+  }),
+}));
 
 vi.mock("@auth/prisma-adapter", () => ({
   PrismaAdapter: vi.fn(),
 }));
 
 vi.mock("../../auth.config", () => ({
-  default: {
-    pages: { signIn: "/auth/signin" },
-    providers: [],
-  },
+  default: { pages: { signIn: "/auth/signin" }, providers: [] },
 }));
 
-describe("Auth session callback", () => {
+// Force import to trigger NextAuth() and capture callbacks
+import "@/lib/auth";
+
+// Helper to call callbacks with proper types
+const sessionCb = (args: unknown) => (capturedCallbacks.session as (a: unknown) => Promise<unknown>)(args);
+const jwtCb = (args: unknown) => (capturedCallbacks.jwt as (a: unknown) => Promise<unknown>)(args);
+const signInCb = (args: unknown) => (capturedCallbacks.signIn as (a: unknown) => Promise<boolean>)(args);
+
+describe("Auth callbacks", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Force re-import to capture callbacks
-    vi.resetModules();
   });
 
-  it("should set session.user.image from avatarUrl", async () => {
-    // Re-import to trigger NextAuth() call
-    vi.resetModules();
+  describe("session callback", () => {
+    it("should enrich session with db user data", async () => {
+      mockFindUnique.mockResolvedValue({
+        id: "u1",
+        role: "ADMIN",
+        githubId: "gh123",
+        avatarUrl: "https://example.com/avatar.jpg",
+      });
 
-    // Re-mock dependencies for fresh import
-    vi.doMock("@/lib/prisma", () => ({
-      prisma: {
-        user: {
-          findUnique: vi.fn().mockResolvedValue({
-            id: "u1",
-            role: "USER",
-            githubId: "gh123",
-            avatarUrl: "https://example.com/avatar.jpg",
-          }),
-          create: vi.fn(),
-        },
-      },
-    }));
+      const session = { user: { id: "", role: "", image: undefined as string | undefined } };
+      const result = await sessionCb({ session, token: { sub: "u1" } });
+      const resultSession = result as typeof session;
 
-    vi.doMock("next-auth", () => ({
-      default: vi.fn((config) => {
-        (globalThis as Record<string, unknown>).__testCallbacks = config.callbacks;
-        return { handlers: {}, auth: vi.fn(), signIn: vi.fn(), signOut: vi.fn() };
-      }),
-    }));
+      expect(resultSession.user.id).toBe("u1");
+      expect(resultSession.user.role).toBe("ADMIN");
+      expect(resultSession.user.image).toBe("https://example.com/avatar.jpg");
+    });
 
-    vi.doMock("@auth/prisma-adapter", () => ({
-      PrismaAdapter: vi.fn(),
-    }));
+    it("should return session unchanged when user not found in db", async () => {
+      mockFindUnique.mockResolvedValue(null);
 
-    vi.doMock("../../auth.config", () => ({
-      default: { pages: {}, providers: [] },
-    }));
+      const session = { user: { id: "orig", role: "USER", image: undefined } };
+      const result = await sessionCb({ session, token: { sub: "u1" } });
+      const resultSession = result as typeof session;
 
-    await import("@/lib/auth");
+      expect(resultSession.user.id).toBe("orig");
+    });
 
-    const callbacks = (globalThis as Record<string, unknown>).__testCallbacks as {
-      session: (args: { session: Record<string, Record<string, unknown>>; token: { sub?: string } }) => Promise<unknown>;
-    };
+    it("should return session unchanged when no token.sub", async () => {
+      const session = { user: { id: "orig" } };
+      const result = await sessionCb({ session, token: {} });
+      expect(result).toBe(session);
+      expect(mockFindUnique).not.toHaveBeenCalled();
+    });
+  });
 
-    expect(callbacks.session).toBeDefined();
+  describe("jwt callback", () => {
+    it("should set token.sub from user.id when user exists", async () => {
+      const token = { sub: undefined as string | undefined };
+      const result = await jwtCb({ token, user: { id: "user-123" } });
+      expect((result as { sub: string }).sub).toBe("user-123");
+    });
 
-    const session = { user: { id: "", role: "", image: undefined as string | undefined } };
-    const token = { sub: "u1" };
+    it("should return token unchanged when user is undefined", async () => {
+      const token = { sub: "existing" };
+      const result = await jwtCb({ token, user: undefined });
+      expect((result as { sub: string }).sub).toBe("existing");
+    });
+  });
 
-    const result = await callbacks.session({ session, token });
-    const resultSession = result as typeof session;
+  describe("signIn callback", () => {
+    it("should create user on github login when not existing", async () => {
+      mockFindUnique.mockResolvedValue(null);
+      mockCreate.mockResolvedValue({});
 
-    expect(resultSession.user.image).toBe("https://example.com/avatar.jpg");
-    expect(resultSession.user.id).toBe("u1");
+      const result = await signInCb({
+        user: { email: "new@example.com", name: "New User", image: "https://img.com/avatar" },
+        account: { provider: "github", providerAccountId: "12345" },
+      });
+
+      expect(result).toBe(true);
+      expect(mockCreate).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          email: "new@example.com",
+          name: "New User",
+          githubId: "12345",
+          avatarUrl: "https://img.com/avatar",
+          role: "USER",
+        }),
+      });
+    });
+
+    it("should not create user on github login when already existing", async () => {
+      mockFindUnique.mockResolvedValue({ id: "u1", email: "existing@example.com" });
+
+      const result = await signInCb({
+        user: { email: "existing@example.com", name: "Existing", image: null },
+        account: { provider: "github", providerAccountId: "123" },
+      });
+
+      expect(result).toBe(true);
+      expect(mockCreate).not.toHaveBeenCalled();
+    });
+
+    it("should skip creation for non-github providers", async () => {
+      const result = await signInCb({
+        user: { email: "user@test.com", name: "Test" },
+        account: { provider: "credentials" },
+      });
+
+      expect(result).toBe(true);
+      expect(mockFindUnique).not.toHaveBeenCalled();
+    });
+
+    it("should skip creation when github user has no email", async () => {
+      const result = await signInCb({
+        user: { email: undefined, name: "No Email" },
+        account: { provider: "github", providerAccountId: "123" },
+      });
+
+      expect(result).toBe(true);
+      expect(mockFindUnique).not.toHaveBeenCalled();
+    });
+
+    it("should use fallback name when user.name is null", async () => {
+      mockFindUnique.mockResolvedValue(null);
+      mockCreate.mockResolvedValue({});
+
+      await signInCb({
+        user: { email: "test@example.com", name: undefined, image: undefined },
+        account: { provider: "github", providerAccountId: "999" },
+      });
+
+      expect(mockCreate).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          name: "Unknown",
+          avatarUrl: null,
+        }),
+      });
+    });
   });
 });

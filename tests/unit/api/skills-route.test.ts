@@ -167,4 +167,116 @@ describe("POST /api/v1/skills", () => {
     const res = await POST(req);
     expect(res.status).toBe(400);
   });
+
+  it("should create skill with tags (existing and new)", async () => {
+    vi.mocked(auth).mockResolvedValue({ user: { id: "u1" }, expires: "" } as never);
+    vi.mocked(prisma.$transaction).mockImplementation(async (cb) => {
+      if (typeof cb === "function") {
+        return cb({
+          skill: { create: vi.fn().mockResolvedValue({ id: "s1", name: "test" }) },
+          skillOwner: { create: vi.fn().mockResolvedValue({}) },
+          tag: {
+            findMany: vi.fn().mockResolvedValue([{ id: "t1", name: "existing" }]),
+            create: vi.fn().mockResolvedValue({ id: "t-new", name: "new-tag" }),
+          },
+          skillTag: { createMany: vi.fn().mockResolvedValue({}) },
+        } as never);
+      }
+      return [];
+    });
+
+    const req = new NextRequest("http://localhost/api/v1/skills", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "test",
+        description: "A valid description",
+        spec: { name: "test", description: "A valid description" },
+        tags: ["existing", "new-tag"],
+      }),
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(201);
+  });
+
+  it("should create skill without tags", async () => {
+    vi.mocked(auth).mockResolvedValue({ user: { id: "u1" }, expires: "" } as never);
+    vi.mocked(prisma.$transaction).mockImplementation(async (cb) => {
+      if (typeof cb === "function") {
+        return cb({
+          skill: { create: vi.fn().mockResolvedValue({ id: "s2", name: "no-tags" }) },
+          skillOwner: { create: vi.fn().mockResolvedValue({}) },
+        } as never);
+      }
+      return [];
+    });
+
+    const req = new NextRequest("http://localhost/api/v1/skills", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "no-tags",
+        description: "A valid description",
+        spec: { name: "no-tags", description: "A valid description" },
+      }),
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(201);
+  });
+
+  it("should create skill with files", async () => {
+    vi.mocked(auth).mockResolvedValue({ user: { id: "u1" }, expires: "" } as never);
+    vi.mocked(prisma.$transaction).mockImplementation(async (cb) => {
+      if (typeof cb === "function") {
+        return cb({
+          skill: { create: vi.fn().mockResolvedValue({ id: "s3", name: "with-files" }) },
+          skillOwner: { create: vi.fn().mockResolvedValue({}) },
+        } as never);
+      }
+      return [];
+    });
+
+    const req = new NextRequest("http://localhost/api/v1/skills", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "with-files",
+        description: "A valid description",
+        spec: { name: "with-files", description: "A valid description" },
+        files: [{ path: "SKILL.md", content: "test" }],
+      }),
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(201);
+  });
+
+  it("should handle POST errors gracefully", async () => {
+    vi.mocked(auth).mockResolvedValue({ user: { id: "u1" }, expires: "" } as never);
+    vi.mocked(prisma.$transaction).mockRejectedValue(new Error("DB error"));
+
+    const req = new NextRequest("http://localhost/api/v1/skills", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "test",
+        description: "A valid description",
+        spec: { name: "test", description: "A valid description" },
+      }),
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(500);
+  });
+
+  it("should return POST 429 when rate limited", async () => {
+    vi.mocked(rateLimit).mockReturnValue({ allowed: false, retryAfter: 3 });
+    const req = new NextRequest("http://localhost/api/v1/skills", {
+      method: "POST",
+      body: JSON.stringify({ name: "test", description: "desc", spec: {} }),
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(429);
+  });
+
+  it("should handle GET errors gracefully", async () => {
+    vi.mocked(searchSkills).mockRejectedValue(new Error("Search failed"));
+    const req = new NextRequest("http://localhost/api/v1/skills");
+    const res = await GET(req);
+    expect(res.status).toBe(500);
+  });
 });

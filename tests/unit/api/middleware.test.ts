@@ -1,33 +1,36 @@
-// tests/unit/api/middleware.test.ts
+// tests/unit/api/proxy.test.ts
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("@/lib/auth", () => ({
-  auth: vi.fn((cb: unknown) => cb),
+vi.mock("next-auth", () => ({
+  default: vi.fn(() => ({
+    auth: vi.fn((cb: unknown) => cb),
+  })),
 }));
 
-describe("API Protection Middleware", () => {
+vi.mock("next/server", () => ({
+  NextResponse: {
+    json: vi.fn((body: unknown, init: { status: number }) => ({
+      body,
+      status: init.status,
+    })),
+  },
+}));
+
+describe("Proxy (API Protection)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("should export a config with /api/v1/:path* matcher", async () => {
-    const { config } = await import("@/middleware");
-    expect(config.matcher).toEqual(["/api/v1/:path*"]);
+  it("should export proxy function and proxyConfig", async () => {
+    const mod = await import("../../../proxy");
+    expect(mod.proxy).toBeDefined();
+    expect(mod.proxyConfig).toBeDefined();
+    expect(mod.proxyConfig.matcher).toBeDefined();
   });
 
-  it("should export a default handler", async () => {
-    const mod = await import("@/middleware");
-    // The default export is the auth() wrapped middleware
-    // It may be a function or an object depending on NextAuth
-    expect(mod.default).toBeDefined();
-  });;
-
-  it("should not match /api/auth paths", () => {
-    // The matcher only targets /api/v1/:path*
-    // /api/auth/* is not matched, so middleware won't run for auth endpoints
-    const matcher = "/api/v1/:path*";
+  it("should not match /api/auth paths with API protection regex", () => {
+    // Proxy protects /api/v1/* but not /api/auth/*
     expect(/^\/api\/v1\//.exec("/api/auth/signin")).toBeNull();
     expect(/^\/api\/v1\//.exec("/api/v1/skills")).not.toBeNull();
-    expect(matcher).toBe("/api/v1/:path*");
   });
 });

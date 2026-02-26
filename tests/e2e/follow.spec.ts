@@ -4,7 +4,7 @@ import { test, expect } from "@playwright/test";
 test.describe("Follow / Unfollow", () => {
   test("should follow a skill", async ({ page }) => {
     await page.goto("/skills");
-    await page.getByRole("link").first().click();
+    await page.locator("main a[href^='/skills/']").first().click();
 
     const followBtn = page.getByRole("button", { name: /follow/i });
     if (await followBtn.isVisible()) {
@@ -15,7 +15,7 @@ test.describe("Follow / Unfollow", () => {
 
   test("should unfollow a skill", async ({ page }) => {
     await page.goto("/skills");
-    await page.getByRole("link").first().click();
+    await page.locator("main a[href^='/skills/']").first().click();
 
     const unfollowBtn = page.getByRole("button", { name: /unfollow/i });
     if (await unfollowBtn.isVisible()) {
@@ -26,7 +26,7 @@ test.describe("Follow / Unfollow", () => {
 
   test("follower count should update after follow", async ({ page }) => {
     await page.goto("/skills");
-    await page.getByRole("link").first().click();
+    await page.locator("main a[href^='/skills/']").first().click();
 
     const countEl = page.getByTestId("follower-count");
     const followBtn = page.getByRole("button", { name: /follow/i });

@@ -19,14 +19,23 @@ vi.mock("@/lib/api-helpers", () => ({
 
 import { GET, POST } from "@/app/api/v1/tags/route";
 import { prisma } from "@/lib/prisma";
-import { requireAuth } from "@/lib/api-helpers";
+import { requireAuth, checkLimit } from "@/lib/api-helpers";
 
 describe("GET /api/v1/tags", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
+  it("should return rate limit when limited", async () => {
+    const limitResponse = new Response(JSON.stringify({ error: "Too Many Requests" }), { status: 429 });
+    vi.mocked(checkLimit).mockReturnValue(limitResponse as never);
+    const req = new NextRequest("http://localhost/api/v1/tags");
+    const res = await GET(req);
+    expect(res.status).toBe(429);
+  });
+
   it("should return tags ordered by name", async () => {
+    vi.mocked(checkLimit).mockReturnValue(null);
     const tags = [
       { id: "t1", name: "react", isSystem: true },
       { id: "t2", name: "typescript", isSystem: false },
@@ -41,11 +50,31 @@ describe("GET /api/v1/tags", () => {
     expect(body.data).toHaveLength(2);
     expect(prisma.tag.findMany).toHaveBeenCalledWith({ orderBy: { name: "asc" } });
   });
+
+  it("should handle errors gracefully", async () => {
+    vi.mocked(checkLimit).mockReturnValue(null);
+    vi.mocked(prisma.tag.findMany).mockRejectedValue(new Error("DB error"));
+    const req = new NextRequest("http://localhost/api/v1/tags");
+    const res = await GET(req);
+    expect(res.status).toBe(500);
+  });
 });
 
 describe("POST /api/v1/tags", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(checkLimit).mockReturnValue(null);
+  });
+
+  it("should return rate limit when limited", async () => {
+    const limitResponse = new Response(JSON.stringify({ error: "Too Many Requests" }), { status: 429 });
+    vi.mocked(checkLimit).mockReturnValue(limitResponse as never);
+    const req = new NextRequest("http://localhost/api/v1/tags", {
+      method: "POST",
+      body: JSON.stringify({ name: "test" }),
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(429);
   });
 
   it("should return 401 when not authenticated", async () => {
@@ -89,5 +118,16 @@ describe("POST /api/v1/tags", () => {
         create: { name: "react" },
       })
     );
+  });
+
+  it("should handle errors gracefully", async () => {
+    vi.mocked(requireAuth).mockResolvedValue({ user: { id: "u1" } } as never);
+    vi.mocked(prisma.tag.upsert).mockRejectedValue(new Error("DB error"));
+    const req = new NextRequest("http://localhost/api/v1/tags", {
+      method: "POST",
+      body: JSON.stringify({ name: "react" }),
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(500);
   });
 });

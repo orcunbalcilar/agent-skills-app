@@ -4,17 +4,18 @@ import { test, expect } from "@playwright/test";
 test.describe("Comments", () => {
   test("should create a comment", async ({ page }) => {
     await page.goto("/skills");
-    await page.getByRole("link").first().click();
+    await page.locator("main a[href^='/skills/']").first().click();
 
-    await page.getByPlaceholder(/comment/i).fill("E2E test comment");
-    await page.getByRole("button", { name: /post|submit|comment/i }).click();
+    // The comment textarea uses placeholder "Add a comment..."
+    await page.getByPlaceholder(/add a comment/i).fill("E2E test comment");
+    await page.getByRole("button", { name: /^comment$/i }).click();
 
     await expect(page.getByText("E2E test comment")).toBeVisible();
   });
 
   test("should edit own comment", async ({ page }) => {
     await page.goto("/skills");
-    await page.getByRole("link").first().click();
+    await page.locator("main a[href^='/skills/']").first().click();
 
     const editBtn = page.getByRole("button", { name: /edit/i }).first();
     if (await editBtn.isVisible()) {
@@ -28,7 +29,7 @@ test.describe("Comments", () => {
 
   test("should delete own comment", async ({ page }) => {
     await page.goto("/skills");
-    await page.getByRole("link").first().click();
+    await page.locator("main a[href^='/skills/']").first().click();
 
     const deleteBtn = page.getByRole("button", { name: /delete.*comment/i }).first();
     if (await deleteBtn.isVisible()) {
@@ -43,7 +44,7 @@ test.describe("Admin comment moderation", () => {
 
   test("admin should be able to delete any comment", async ({ page }) => {
     await page.goto("/skills");
-    await page.getByRole("link").first().click();
+    await page.locator("main a[href^='/skills/']").first().click();
 
     const commentDeleteBtn = page.getByRole("button", { name: /delete/i }).first();
     if (await commentDeleteBtn.isVisible()) {

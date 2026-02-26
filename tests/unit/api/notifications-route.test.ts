@@ -19,7 +19,34 @@ vi.mock("@/lib/api-helpers", () => ({
 }));
 
 import { GET } from "@/app/api/v1/notifications/route";
-import { requireAuth } from "@/lib/api-helpers";
+import { requireAuth, checkLimit } from "@/lib/api-helpers";
+import { prisma } from "@/lib/prisma";
+
+describe("GET /api/v1/notifications rate limit", () => {
+  it("should return rate limit response", async () => {
+    const limitResponse = new Response(JSON.stringify({ error: "Too Many Requests" }), { status: 429 });
+    vi.mocked(checkLimit).mockReturnValue(limitResponse as never);
+    const req = new NextRequest("http://localhost/api/v1/notifications");
+    const res = await GET(req);
+    expect(res.status).toBe(429);
+    vi.mocked(checkLimit).mockReturnValue(null);
+  });
+});
+
+describe("GET /api/v1/notifications error handling", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(checkLimit).mockReturnValue(null);
+    vi.mocked(requireAuth).mockResolvedValue({ user: { id: "u1" } } as never);
+  });
+
+  it("should handle errors gracefully", async () => {
+    vi.mocked(prisma.$transaction).mockRejectedValue(new Error("DB error"));
+    const req = new NextRequest("http://localhost/api/v1/notifications");
+    const res = await GET(req);
+    expect(res.status).toBe(500);
+  });
+});
 
 describe("GET /api/v1/notifications", () => {
   beforeEach(() => {
