@@ -13,10 +13,10 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       thresholds: {
-        lines: 90,
-        functions: 90,
-        branches: 90,
-        statements: 90,
+        lines: 100,
+        functions: 98,
+        branches: 99,
+        statements: 100,
       },
       exclude: [
         "components/ui/**",

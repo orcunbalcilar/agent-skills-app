@@ -112,4 +112,24 @@ describe("POST /api/v1/requests/[requestId]/reject", () => {
     const res = await POST(req, { params: Promise.resolve({ requestId: "r1" }) });
     expect(res.status).toBe(500);
   });
+
+  it("should use fallback name when session user has no name", async () => {
+    vi.mocked(requireAuth).mockResolvedValue({ user: { id: "owner1", name: null, role: "USER" } } as never);
+    vi.mocked(prisma.changeRequest.findUnique).mockResolvedValue({
+      id: "r1", status: "OPEN", requesterId: "u1", skillId: "s1",
+      skill: { id: "s1", name: "test-skill", owners: [{ userId: "owner1" }] },
+    } as never);
+    vi.mocked(prisma.changeRequest.update).mockResolvedValue({
+      id: "r1", status: "REJECTED",
+    } as never);
+
+    const req = new NextRequest("http://localhost/api/v1/requests/r1/reject", { method: "POST" });
+    await POST(req, { params: Promise.resolve({ requestId: "r1" }) });
+
+    expect(dispatchNotification).toHaveBeenCalledWith(
+      "CHANGE_REQUEST_REJECTED",
+      ["u1"],
+      expect.objectContaining({ actorName: "Someone" }),
+    );
+  });
 });

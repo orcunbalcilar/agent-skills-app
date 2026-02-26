@@ -89,6 +89,18 @@ describe("POST /api/v1/skills/[id]/comments", () => {
     vi.mocked(requireAuth).mockResolvedValue(session as never);
   });
 
+  it("should return 429 when rate limited", async () => {
+    vi.mocked(checkLimit).mockReturnValueOnce(
+      new Response(JSON.stringify({ error: "Too Many Requests" }), { status: 429 }) as never
+    );
+    const req = new NextRequest("http://localhost/api/v1/skills/s1/comments", {
+      method: "POST",
+      body: JSON.stringify({ content: "test" }),
+    });
+    const res = await POST(req, { params: Promise.resolve({ id: "s1" }) });
+    expect(res.status).toBe(429);
+  });
+
   it("should return 401 when unauthenticated", async () => {
     vi.mocked(requireAuth).mockResolvedValue(null as never);
     const req = new NextRequest("http://localhost/api/v1/skills/s1/comments", {
@@ -160,6 +172,49 @@ describe("POST /api/v1/skills/[id]/comments", () => {
     await POST(req, { params: Promise.resolve({ id: "s1" }) });
 
     expect(dispatchNotification).not.toHaveBeenCalled();
+  });
+
+  it("should skip notification when no followers", async () => {
+    vi.mocked(prisma.skill.findUnique).mockResolvedValue({
+      id: "s1",
+      name: "test",
+      followers: [],
+    } as never);
+    vi.mocked(prisma.comment.create).mockResolvedValue({ id: "c1", content: "test" } as never);
+
+    const req = new NextRequest("http://localhost/api/v1/skills/s1/comments", {
+      method: "POST",
+      body: JSON.stringify({ content: "hello" }),
+    });
+    await POST(req, { params: Promise.resolve({ id: "s1" }) });
+
+    expect(dispatchNotification).not.toHaveBeenCalled();
+  });
+
+  it("should use fallback name when session user has no name", async () => {
+    vi.mocked(requireAuth).mockResolvedValue({ user: { id: "u1", name: null } } as never);
+    vi.mocked(prisma.skill.findUnique).mockResolvedValue({
+      id: "s1",
+      name: "test-skill",
+      followers: [{ userId: "u2" }],
+    } as never);
+    vi.mocked(prisma.comment.create).mockResolvedValue({
+      id: "c1",
+      content: "test",
+      author: { id: "u1", name: null },
+    } as never);
+
+    const req = new NextRequest("http://localhost/api/v1/skills/s1/comments", {
+      method: "POST",
+      body: JSON.stringify({ content: "hello" }),
+    });
+    await POST(req, { params: Promise.resolve({ id: "s1" }) });
+
+    expect(dispatchNotification).toHaveBeenCalledWith(
+      "NEW_COMMENT",
+      ["u2"],
+      expect.objectContaining({ actorName: "Someone" })
+    );
   });
 
   it("should handle errors gracefully", async () => {

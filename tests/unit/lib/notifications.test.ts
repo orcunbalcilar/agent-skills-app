@@ -83,4 +83,20 @@ describe("dispatchNotification", () => {
 
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
+
+  it("should handle payload without skillId", async () => {
+    vi.mocked(prisma.user.findMany).mockResolvedValue([
+      { id: "u1", notificationPreferences: {} },
+    ] as never);
+
+    vi.mocked(prisma.$transaction).mockResolvedValue([
+      { id: "n1", userId: "u1" },
+    ]);
+
+    await dispatchNotification("NEW_COMMENT", ["u1"], {
+      actorName: "Someone",
+    } as never);
+
+    expect(prisma.$transaction).toHaveBeenCalled();
+  });
 });

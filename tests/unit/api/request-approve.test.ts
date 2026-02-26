@@ -137,6 +137,60 @@ describe("POST /api/v1/requests/[requestId]/approve", () => {
     );
   });
 
+  it("should skip notification when findUnique returns null after approval", async () => {
+    const updatedCr = { id: "r1", status: "APPROVED", requesterId: "u1" };
+    vi.mocked(prisma.$transaction).mockImplementation(async (cb: (tx: unknown) => Promise<unknown>) => {
+      return cb({
+        changeRequest: {
+          findUnique: vi.fn().mockResolvedValue({
+            id: "r1", status: "OPEN", skillId: "s1", requesterId: "u1",
+            skill: { id: "s1", name: "test-skill", owners: [{ userId: "owner1" }] },
+          }),
+          update: vi.fn().mockResolvedValue(updatedCr),
+        },
+        skill: { update: vi.fn() },
+        $executeRaw: vi.fn(),
+      });
+    });
+    vi.mocked(prisma.changeRequest.findUnique).mockResolvedValue(null);
+
+    const req = new NextRequest("http://localhost/api/v1/requests/r1/approve", { method: "POST" });
+    const res = await POST(req, { params: Promise.resolve({ requestId: "r1" }) });
+
+    expect(res.status).toBe(200);
+    expect(dispatchNotification).not.toHaveBeenCalled();
+  });
+
+  it("should use fallback name when session user has no name", async () => {
+    vi.mocked(requireAuth).mockResolvedValue({ user: { id: "owner1", name: null, role: "USER" } } as never);
+    const updatedCr = { id: "r1", status: "APPROVED", requesterId: "u1" };
+    vi.mocked(prisma.$transaction).mockImplementation(async (cb: (tx: unknown) => Promise<unknown>) => {
+      return cb({
+        changeRequest: {
+          findUnique: vi.fn().mockResolvedValue({
+            id: "r1", status: "OPEN", skillId: "s1", requesterId: "u1",
+            skill: { id: "s1", name: "test-skill", owners: [{ userId: "owner1" }] },
+          }),
+          update: vi.fn().mockResolvedValue(updatedCr),
+        },
+        skill: { update: vi.fn() },
+        $executeRaw: vi.fn(),
+      });
+    });
+    vi.mocked(prisma.changeRequest.findUnique).mockResolvedValue({
+      id: "r1", requesterId: "u1", skillId: "s1",
+    } as never);
+
+    const req = new NextRequest("http://localhost/api/v1/requests/r1/approve", { method: "POST" });
+    await POST(req, { params: Promise.resolve({ requestId: "r1" }) });
+
+    expect(dispatchNotification).toHaveBeenCalledWith(
+      "CHANGE_REQUEST_APPROVED",
+      ["u1"],
+      expect.objectContaining({ actorName: "Someone" }),
+    );
+  });
+
   it("should handle errors", async () => {
     vi.mocked(prisma.$transaction).mockRejectedValue(new Error("DB"));
     const req = new NextRequest("http://localhost/api/v1/requests/r1/approve", { method: "POST" });

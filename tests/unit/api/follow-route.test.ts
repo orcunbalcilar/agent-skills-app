@@ -107,6 +107,36 @@ describe("POST /api/v1/skills/[id]/follow", () => {
     expect(dispatchNotification).not.toHaveBeenCalled();
   });
 
+  it("should skip notification when no owners", async () => {
+    vi.mocked(prisma.skill.findUnique).mockResolvedValue({
+      id: "s1", name: "skill", owners: [],
+    } as never);
+    vi.mocked(prisma.follower.upsert).mockResolvedValue({} as never);
+    vi.mocked(prisma.follower.count).mockResolvedValue(1);
+
+    const req = new NextRequest("http://localhost/api/v1/skills/s1/follow", { method: "POST" });
+    const res = await POST(req, { params: Promise.resolve({ id: "s1" }) });
+
+    expect(res.status).toBe(200);
+    expect(dispatchNotification).not.toHaveBeenCalled();
+  });
+
+  it("should use fallback name when session user has no name", async () => {
+    vi.mocked(requireAuth).mockResolvedValue({ user: { id: "u1", name: null }, expires: "" } as never);
+    vi.mocked(prisma.skill.findUnique).mockResolvedValue({
+      id: "s1", name: "skill", owners: [{ userId: "o1" }],
+    } as never);
+    vi.mocked(prisma.follower.upsert).mockResolvedValue({} as never);
+    vi.mocked(prisma.follower.count).mockResolvedValue(2);
+
+    const req = new NextRequest("http://localhost/api/v1/skills/s1/follow", { method: "POST" });
+    await POST(req, { params: Promise.resolve({ id: "s1" }) });
+
+    expect(dispatchNotification).toHaveBeenCalledWith(
+      "NEW_FOLLOWER", ["o1"], expect.objectContaining({ actorName: "Someone" })
+    );
+  });
+
   it("should handle errors gracefully", async () => {
     vi.mocked(prisma.skill.findUnique).mockRejectedValue(new Error("DB error"));
     const req = new NextRequest("http://localhost/api/v1/skills/s1/follow", { method: "POST" });

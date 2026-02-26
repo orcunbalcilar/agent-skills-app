@@ -32,8 +32,34 @@ import { GET as getRequest, DELETE as withdrawRequest } from "@/app/api/v1/reque
 import { POST as approveRequest } from "@/app/api/v1/requests/[requestId]/approve/route";
 import { POST as rejectRequest } from "@/app/api/v1/requests/[requestId]/reject/route";
 import { prisma } from "@/lib/prisma";
-import { requireAuth } from "@/lib/api-helpers";
+import { requireAuth, checkLimit } from "@/lib/api-helpers";
 import { dispatchNotification } from "@/lib/notifications";
+
+describe("GET /api/v1/skills/[id]/requests rate limit", () => {
+  it("should return 429 when rate limited", async () => {
+    const limitResponse = new Response(JSON.stringify({ error: "Too Many Requests" }), { status: 429 });
+    vi.mocked(checkLimit).mockReturnValue(limitResponse as never);
+    const req = new NextRequest("http://localhost/api/v1/skills/s1/requests");
+    const res = await getRequests(req, { params: Promise.resolve({ id: "s1" }) });
+    expect(res.status).toBe(429);
+    vi.mocked(checkLimit).mockReturnValue(null);
+  });
+});
+
+describe("POST /api/v1/skills/[id]/requests rate limit", () => {
+  it("should return 429 when rate limited", async () => {
+    vi.mocked(requireAuth).mockResolvedValue({ user: { id: "u1" } } as never);
+    const limitResponse = new Response(JSON.stringify({ error: "Too Many Requests" }), { status: 429 });
+    vi.mocked(checkLimit).mockReturnValue(limitResponse as never);
+    const req = new NextRequest("http://localhost/api/v1/skills/s1/requests", {
+      method: "POST",
+      body: JSON.stringify({ title: "t", description: "d" }),
+    });
+    const res = await postRequest(req, { params: Promise.resolve({ id: "s1" }) });
+    expect(res.status).toBe(429);
+    vi.mocked(checkLimit).mockReturnValue(null);
+  });
+});
 
 describe("GET /api/v1/skills/[id]/requests", () => {
   beforeEach(() => vi.clearAllMocks());
@@ -130,6 +156,24 @@ describe("POST /api/v1/skills/[id]/requests", () => {
 
     expect(res.status).toBe(201);
     expect(dispatchNotification).not.toHaveBeenCalled();
+  });
+
+  it("should use fallback name when session user has no name", async () => {
+    vi.mocked(requireAuth).mockResolvedValue({ user: { id: "u1", name: null }, expires: "" } as never);
+    vi.mocked(prisma.skill.findUnique).mockResolvedValue({
+      id: "s1", name: "skill", owners: [{ userId: "o1" }],
+    } as never);
+    vi.mocked(prisma.changeRequest.create).mockResolvedValue({ id: "r1" } as never);
+
+    const req = new NextRequest("http://localhost/api/v1/skills/s1/requests", {
+      method: "POST",
+      body: JSON.stringify({ title: "Fix", description: "desc" }),
+    });
+    await postRequest(req, { params: Promise.resolve({ id: "s1" }) });
+
+    expect(dispatchNotification).toHaveBeenCalledWith(
+      "CHANGE_REQUEST_SUBMITTED", ["o1"], expect.objectContaining({ actorName: "Someone" })
+    );
   });
 
   it("should handle errors", async () => {

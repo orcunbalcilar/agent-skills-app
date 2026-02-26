@@ -141,6 +141,18 @@ describe("SseProvider", () => {
     await waitFor(() => expect(mockEventSourceInstances).toHaveLength(1));
     expect(mockSetUnreadCount).not.toHaveBeenCalled();
   });
+
+  it("should handle fetch response with missing data field", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({}), // no data property
+    });
+
+    render(<SseProvider userId="u1"><div>child</div></SseProvider>);
+
+    await waitFor(() => expect(mockEventSourceInstances).toHaveLength(1));
+    expect(mockSetUnreadCount).not.toHaveBeenCalled();
+  });
 });
 
 describe("useSse", () => {

@@ -102,6 +102,26 @@ describe("POST /api/v1/skills/[id]/owners", () => {
     expect(res.status).toBe(404);
   });
 
+  it("should use fallback name when session user has no name", async () => {
+    vi.mocked(requireAuth).mockResolvedValue({ user: { id: "u1", name: null, role: "USER" }, expires: "" } as never);
+    vi.mocked(prisma.skill.findUnique).mockResolvedValue({
+      id: "s1", name: "test-skill", owners: [{ userId: "u1" }],
+    } as never);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: "u2" } as never);
+    vi.mocked(prisma.skillOwner.upsert).mockResolvedValue({} as never);
+
+    const req = new NextRequest("http://localhost/api/v1/skills/s1/owners", {
+      method: "POST",
+      body: JSON.stringify({ userId: "u2" }),
+    });
+    const res = await POST(req, { params: Promise.resolve({ id: "s1" }) });
+
+    expect(res.status).toBe(201);
+    expect(dispatchNotification).toHaveBeenCalledWith(
+      "OWNER_ADDED", ["u2"], expect.objectContaining({ actorName: "Someone" })
+    );
+  });
+
   it("should add owner and dispatch notification", async () => {
     vi.mocked(prisma.skill.findUnique).mockResolvedValue({
       id: "s1", name: "my-skill", owners: [{ userId: "u1" }],

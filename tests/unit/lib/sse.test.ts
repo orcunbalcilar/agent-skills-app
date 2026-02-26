@@ -158,9 +158,113 @@ describe("createSSEStream", () => {
 
     // Read initial ping
     await reader.read();
-
-    // Cancel the stream
     await reader.cancel();
+
+    expect(onCleanup).toHaveBeenCalled();
+  });
+
+  it("should handle heartbeat enqueue failure gracefully", async () => {
+    vi.useRealTimers();
+
+    // Capture the heartbeat callback so we can invoke it after stream is cancelled
+    let heartbeatFn: (() => void) | undefined;
+    const origSetInterval = globalThis.setInterval;
+    globalThis.setInterval = ((fn: TimerHandler, ms?: number) => {
+      if (ms === 30_000) heartbeatFn = fn as () => void;
+      return origSetInterval(fn, ms);
+    }) as typeof globalThis.setInterval;
+
+    const { stream } = createSSEStream("ch");
+    const reader = stream.getReader();
+
+    await reader.read(); // Read initial ping
+    await reader.cancel(); // Closes the stream (cancel handler clears interval)
+
+    // Manually invoke the heartbeat callback after stream is cancelled.
+    // controller.enqueue() will throw, exercising the catch block (lines 71-74).
+    expect(heartbeatFn).toBeDefined();
+    heartbeatFn!();
+
+    globalThis.setInterval = origSetInterval;
+  });
+
+  it("should handle heartbeat catch when heartbeatId is falsy", async () => {
+    vi.useRealTimers();
+
+    let heartbeatFn: (() => void) | undefined;
+    const origSetInterval = globalThis.setInterval;
+    // Return 0 (falsy) to make heartbeatId falsy for the catch branch
+    globalThis.setInterval = ((fn: TimerHandler, ms?: number) => {
+      if (ms === 30_000) {
+        heartbeatFn = fn as () => void;
+        origSetInterval(fn, 2_147_483_647); // park it far away
+        return 0 as unknown as ReturnType<typeof setInterval>;
+      }
+      return origSetInterval(fn, ms);
+    }) as typeof globalThis.setInterval;
+
+    const { stream } = createSSEStream("ch");
+    const reader = stream.getReader();
+    await reader.read();
+    await reader.cancel();
+
+    // heartbeatId is 0 (falsy), so `if (heartbeatId)` in the catch is false
+    expect(heartbeatFn).toBeDefined();
+    heartbeatFn!();
+
+    globalThis.setInterval = origSetInterval;
+  });
+
+  it("should handle notification enqueue failure gracefully", async () => {
+    vi.useRealTimers();
+    const { stream, cleanup } = createSSEStream("ch");
+    const reader = stream.getReader();
+
+    // Read initial ping
+    await reader.read();
+
+    // Cancel to make enqueue throw
+    await reader.cancel();
+
+    // If a notification arrives after cancel, the catch block in the listener handles it
+    const notifyHandler = mockOnFn.mock.calls.find(
+      (call: unknown[]) => call[0] === "notification"
+    )?.[1];
+    if (notifyHandler) {
+      notifyHandler({ payload: '{"test":true}' });
+    }
+
+    await cleanup();
+  });
+
+  it("should handle cancel when cleanupFn is not yet set", async () => {
+    // Make createListenClient never resolve so cleanupFn stays null during cancel
+    mockConnectFn.mockReturnValue(new Promise(() => {})); // never resolves
+    
+    vi.useRealTimers();
+    const onCleanup = vi.fn();
+    const { stream } = createSSEStream("ch", onCleanup);
+    const reader = stream.getReader();
+
+    // Cancel immediately before start() finishes (cleanupFn is still null)
+    await reader.cancel();
+
+    expect(onCleanup).toHaveBeenCalled();
+    // Reset mock so other tests work
+    mockConnectFn.mockResolvedValue(undefined);
+  });
+
+  it("should handle cancel when cleanupFn rejects", async () => {
+    // Make client.end reject so cleanupFn().catch fires
+    mockEndFn.mockRejectedValueOnce(new Error("connection lost"));
+
+    vi.useRealTimers();
+    const onCleanup = vi.fn();
+    const { stream } = createSSEStream("ch", onCleanup);
+    const reader = stream.getReader();
+
+    await reader.read(); // Read initial ping (waits for start to complete)
+    await reader.cancel(); // cancel → cleanupFn?.().catch(() => {}) — catch fires
 
     expect(onCleanup).toHaveBeenCalled();
   });
@@ -179,5 +283,18 @@ describe("createSSEStream", () => {
 
     // Cleanup should have called end on pg client
     expect(mockEndFn).toHaveBeenCalled();
+  });
+
+  it("should handle cleanup called before stream starts", async () => {
+    // Make createListenClient never resolve so cleanupFn/heartbeatId stay null
+    mockConnectFn.mockReturnValue(new Promise(() => {}));
+    vi.useRealTimers();
+
+    const { cleanup } = createSSEStream("ch");
+    // Call cleanup immediately — heartbeatId is null, cleanupFn is null
+    await cleanup();
+
+    // Reset mock so other tests work
+    mockConnectFn.mockResolvedValue(undefined);
   });
 });

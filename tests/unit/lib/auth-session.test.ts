@@ -64,6 +64,21 @@ describe("Auth callbacks", () => {
       expect(resultSession.user.image).toBe("https://example.com/avatar.jpg");
     });
 
+    it("should set image to undefined when avatarUrl is null", async () => {
+      mockFindUnique.mockResolvedValue({
+        id: "u1",
+        role: "USER",
+        githubId: "gh123",
+        avatarUrl: null,
+      });
+
+      const session = { user: { id: "", role: "", image: "old" as string | undefined } };
+      const result = await sessionCb({ session, token: { sub: "u1" } });
+      const resultSession = result as typeof session;
+
+      expect(resultSession.user.image).toBeUndefined();
+    });
+
     it("should return session unchanged when user not found in db", async () => {
       mockFindUnique.mockResolvedValue(null);
 
@@ -78,6 +93,13 @@ describe("Auth callbacks", () => {
       const session = { user: { id: "orig" } };
       const result = await sessionCb({ session, token: {} });
       expect(result).toBe(session);
+      expect(mockFindUnique).not.toHaveBeenCalled();
+    });
+
+    it("should return session unchanged when session.user is falsy", async () => {
+      const session = { user: null };
+      const result = await sessionCb({ session, token: { sub: "u1" } });
+      expect(result).toEqual(session);
       expect(mockFindUnique).not.toHaveBeenCalled();
     });
   });

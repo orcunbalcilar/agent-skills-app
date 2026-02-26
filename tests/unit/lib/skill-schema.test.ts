@@ -453,5 +453,20 @@ Step-by-step instructions for PDF processing.
     expect(result.data!["allowed-tools"]).toBe("Bash(pdftotext:*) Read");
     expect(result.data!.body).toContain("# PDF Processing");
   });
+
+  it("should handle entries in different top-level directories (no common root)", () => {
+    const content = `---
+name: test-skill
+description: A test skill
+---
+`;
+    const entries: SkillFolderEntry[] = [
+      { path: "dir-a/SKILL.md", content },
+      { path: "dir-b/other.py", content: "# code" },
+    ];
+    const result = validateSkillFolder(entries);
+    // Should still fail because SKILL.md is not at root and no common root
+    expect(result.success).toBe(false);
+  });
 });
 

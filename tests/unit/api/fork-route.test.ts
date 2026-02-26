@@ -115,4 +115,23 @@ describe("POST /api/v1/skills/[id]/fork", () => {
     const res = await POST(req, { params: Promise.resolve({ id: "s1" }) });
     expect(res.status).toBe(500);
   });
+
+  it("should use fallback name when session user has no name", async () => {
+    vi.mocked(requireAuth).mockResolvedValue({ user: { id: "u1", name: null }, expires: "" } as never);
+    vi.mocked(prisma.skill.findUnique).mockResolvedValue({
+      id: "s1", name: "original", status: "RELEASED", description: "desc",
+      spec: { name: "original" }, forkCount: 0,
+      owners: [{ userId: "o1" }],
+      tags: [],
+    } as never);
+    vi.mocked(prisma.$transaction).mockResolvedValue([{ id: "f1" }, {}] as never);
+    vi.mocked(prisma.skillOwner.create).mockResolvedValue({} as never);
+
+    const req = new NextRequest("http://localhost/api/v1/skills/s1/fork", { method: "POST" });
+    await POST(req, { params: Promise.resolve({ id: "s1" }) });
+
+    expect(dispatchNotification).toHaveBeenCalledWith(
+      "SKILL_FORKED", ["o1"], expect.objectContaining({ actorName: "Someone" })
+    );
+  });
 });

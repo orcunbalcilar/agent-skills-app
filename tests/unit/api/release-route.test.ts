@@ -114,4 +114,21 @@ describe("POST /api/v1/skills/[id]/release", () => {
     const res = await POST(req, { params: Promise.resolve({ id: "s1" }) });
     expect(res.status).toBe(500);
   });
+
+  it("should use fallback name when session user has no name", async () => {
+    vi.mocked(requireAuth).mockResolvedValue({ user: { id: "u1", name: null, role: "USER" } } as never);
+    vi.mocked(prisma.skill.findUnique).mockResolvedValue({
+      id: "s1", name: "my-skill", status: "TEMPLATE",
+      owners: [{ userId: "u1" }],
+      followers: [{ userId: "f1" }],
+    } as never);
+    vi.mocked(prisma.skill.update).mockResolvedValue({ id: "s1", status: "RELEASED" } as never);
+
+    const req = new NextRequest("http://localhost/api/v1/skills/s1/release", { method: "POST" });
+    await POST(req, { params: Promise.resolve({ id: "s1" }) });
+
+    expect(dispatchNotification).toHaveBeenCalledWith(
+      "SKILL_RELEASED", ["f1"], expect.objectContaining({ actorName: "Someone" })
+    );
+  });
 });

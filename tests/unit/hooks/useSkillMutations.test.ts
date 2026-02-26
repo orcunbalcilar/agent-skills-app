@@ -55,6 +55,19 @@ describe("useCreateSkill", () => {
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(result.current.error?.message).toBe("Validation failed");
   });
+
+  it("should handle error with fallback message", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      json: () => Promise.resolve({}),
+    });
+
+    const { result } = renderHook(() => useCreateSkill(), { wrapper: createWrapper() });
+    result.current.mutate({ name: "", description: "", spec: {} });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(result.current.error?.message).toBe("Request failed");
+  });
 });
 
 describe("useUpdateSkill", () => {
@@ -248,6 +261,52 @@ describe("useToggleFollow", () => {
     });
 
     const { result } = renderHook(() => useToggleFollow("s1", false), { wrapper });
+
+    await act(async () => {
+      result.current.mutate();
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  });
+
+  it("should apply optimistic update when _count is missing", async () => {
+    const qc = new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    });
+    qc.setQueryData(["skill", "s1"], { name: "test" });
+
+    const wrapper = ({ children }: { children: React.ReactNode }) =>
+      React.createElement(QueryClientProvider, { client: qc }, children);
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ data: { followed: true } }),
+    });
+
+    const { result } = renderHook(() => useToggleFollow("s1", false), { wrapper });
+
+    await act(async () => {
+      result.current.mutate();
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  });
+
+  it("should apply optimistic update when followers count is missing", async () => {
+    const qc = new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    });
+    qc.setQueryData(["skill", "s1"], { _count: {} });
+
+    const wrapper = ({ children }: { children: React.ReactNode }) =>
+      React.createElement(QueryClientProvider, { client: qc }, children);
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ data: { unfollowed: true } }),
+    });
+
+    const { result } = renderHook(() => useToggleFollow("s1", true), { wrapper });
 
     await act(async () => {
       result.current.mutate();

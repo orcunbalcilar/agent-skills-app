@@ -174,4 +174,26 @@ describe("PATCH /api/v1/skills/[id]", () => {
     const res = await PATCH(req, { params: Promise.resolve({ id: "s1" }) });
     expect(res.status).toBe(500);
   });
+
+  it("should update spec and files fields", async () => {
+    vi.mocked(prisma.skill.findUnique).mockResolvedValue({
+      id: "s1", status: "TEMPLATE", version: 1, spec: {}, files: [],
+      owners: [{ userId: "owner1" }],
+    } as never);
+    const mockTx = {
+      skillVersion: { create: vi.fn().mockResolvedValue({}) },
+      skill: { update: vi.fn().mockResolvedValue({ id: "s1", version: 2, spec: { name: "s1" }, files: [{ path: "a.txt" }] }) },
+      skillTag: { deleteMany: vi.fn(), createMany: vi.fn() },
+      tag: { findMany: vi.fn().mockResolvedValue([]) },
+    };
+    vi.mocked(prisma.$transaction).mockImplementation(async (cb: (tx: unknown) => Promise<unknown>) => cb(mockTx));
+
+    const req = new NextRequest("http://localhost/api/v1/skills/s1", {
+      method: "PATCH",
+      body: JSON.stringify({ spec: { name: "s1" }, files: [{ path: "a.txt", content: "hello" }] }),
+    });
+    const res = await PATCH(req, { params: Promise.resolve({ id: "s1" }) });
+
+    expect(res.status).toBe(200);
+  });
 });

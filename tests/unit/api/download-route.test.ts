@@ -104,6 +104,23 @@ describe("GET /api/v1/download/[id]", () => {
     expect(res.headers.get("Content-Type")).toBe("application/zip");
   });
 
+  it("should download when no session (anonymous)", async () => {
+    const { auth } = await import("@/lib/auth");
+    vi.mocked(auth).mockResolvedValueOnce(null as never);
+    vi.mocked(prisma.skill.findUnique).mockResolvedValue({
+      id: "s1",
+      name: "test-skill",
+      spec: { name: "test-skill", description: "A test skill" },
+    } as never);
+    vi.mocked(prisma.$transaction).mockResolvedValue([{}, {}] as never);
+
+    const req = new NextRequest("http://localhost/api/v1/download/s1");
+    const res = await GET(req, { params: Promise.resolve({ id: "s1" }) });
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Content-Type")).toBe("application/zip");
+  });
+
   it("should handle errors gracefully", async () => {
     vi.mocked(prisma.skill.findUnique).mockRejectedValue(new Error("DB error"));
     const req = new NextRequest("http://localhost/api/v1/download/s1");
