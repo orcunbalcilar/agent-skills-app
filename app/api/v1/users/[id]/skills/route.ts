@@ -1,6 +1,6 @@
 // app/api/v1/users/[id]/skills/route.ts
 
-import { checkLimit, getIp } from "@/lib/api-helpers";
+import { checkLimit, getIp, parsePagination } from "@/lib/api-helpers";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -13,8 +13,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     const { searchParams } = req.nextUrl;
-    const page = Number(searchParams.get("page") ?? 1);
-    const pageSize = Number(searchParams.get("pageSize") ?? 12);
+    const { page, pageSize } = parsePagination(searchParams);
 
     const [skills, total] = await prisma.$transaction([
       prisma.skill.findMany({

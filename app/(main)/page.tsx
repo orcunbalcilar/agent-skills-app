@@ -10,11 +10,14 @@ export default function HomePage() {
   const { data: trending } = useSkills({ status: "RELEASED", sort: "most_downloaded", pageSize: 6 });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <GlobalStatsBanner />
 
-      <section>
-        <h2 className="text-xl font-semibold mb-4">Latest Released</h2>
+      <section className="animate-fade-in [animation-delay:0.1s]">
+        <h2 className="text-xl font-semibold mb-5 flex items-center gap-2">
+          <span>🚀</span>
+          <span>Latest Released</span>
+        </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {latest?.data.map((skill) => (
             <SkillCard key={skill.id} skill={skill} />
@@ -22,8 +25,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section>
-        <h2 className="text-xl font-semibold mb-4">Trending</h2>
+      <section className="animate-fade-in [animation-delay:0.2s]">
+        <h2 className="text-xl font-semibold mb-5 flex items-center gap-2">
+          <span>🔥</span>
+          <span>Trending</span>
+        </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {trending?.data.map((skill) => (
             <SkillCard key={skill.id} skill={skill} />

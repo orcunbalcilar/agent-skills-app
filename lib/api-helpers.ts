@@ -28,3 +28,9 @@ export async function requireAuth(): Promise<AuthedSession | null> {
   if (!session?.user?.id) return null;
   return session as AuthedSession;
 }
+
+export function parsePagination(searchParams: URLSearchParams, defaultPageSize = 12) {
+  const page = Math.max(1, Math.floor(Number(searchParams.get("page") ?? 1)) || 1);
+  const pageSize = Math.max(1, Math.min(100, Math.floor(Number(searchParams.get("pageSize") ?? defaultPageSize)) || defaultPageSize));
+  return { page, pageSize };
+}

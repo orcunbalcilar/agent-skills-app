@@ -30,8 +30,8 @@ export async function GET(req: NextRequest) {
       status: searchParams.get("status") as "TEMPLATE" | "RELEASED" | undefined,
       ownerId: searchParams.get("ownerId") ?? undefined,
       sort: (searchParams.get("sort") as Parameters<typeof searchSkills>[0]["sort"]) ?? "most_downloaded",
-      page: Number(searchParams.get("page") ?? 1),
-      pageSize: Number(searchParams.get("pageSize") ?? 12),
+      page: Math.max(1, Math.floor(Number(searchParams.get("page") ?? 1)) || 1),
+      pageSize: Math.max(1, Math.min(100, Math.floor(Number(searchParams.get("pageSize") ?? 12)) || 12)),
       userId: session?.user?.id,
     });
 

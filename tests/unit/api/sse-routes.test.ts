@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 
 vi.mock("@/lib/sse", () => ({
-  createSSEStream: vi.fn().mockReturnValue(new ReadableStream()),
+  createSSEStream: vi.fn().mockReturnValue({ stream: new ReadableStream(), cleanup: vi.fn() }),
 }));
 
 vi.mock("@/lib/api-helpers", () => ({
@@ -25,7 +25,7 @@ describe("GET /api/v1/sse/stats", () => {
 
     expect(res.headers.get("Content-Type")).toBe("text/event-stream");
     expect(res.headers.get("Cache-Control")).toBe("no-cache, no-transform");
-    expect(createSSEStream).toHaveBeenCalledWith("global_stats", expect.any(TextEncoder), expect.any(Function));
+    expect(createSSEStream).toHaveBeenCalledWith("global_stats");
   });
 });
 
@@ -37,7 +37,7 @@ describe("GET /api/v1/sse/skills/[id]/followers", () => {
     const res = await getFollowersSse(req, { params: Promise.resolve({ id: "s1" }) });
 
     expect(res.headers.get("Content-Type")).toBe("text/event-stream");
-    expect(createSSEStream).toHaveBeenCalledWith("skill_followers:s1", expect.any(TextEncoder), expect.any(Function));
+    expect(createSSEStream).toHaveBeenCalledWith("skill_followers:s1");
   });
 });
 
@@ -57,6 +57,6 @@ describe("GET /api/v1/sse/notifications", () => {
     const res = await getNotificationsSse(req);
 
     expect(res.headers.get("Content-Type")).toBe("text/event-stream");
-    expect(createSSEStream).toHaveBeenCalledWith("notifications:u1", expect.any(TextEncoder), expect.any(Function));
+    expect(createSSEStream).toHaveBeenCalledWith("notifications:u1");
   });
 });

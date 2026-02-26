@@ -28,12 +28,13 @@ export function Sidebar({ isAdmin }: Readonly<SidebarProps>) {
 
   if (!sidebarOpen) {
     return (
-      <aside className="w-12 border-r bg-background flex flex-col items-center pt-4">
+      <aside className="w-12 border-r border-border/50 bg-background/60 backdrop-blur-lg flex flex-col items-center pt-4">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setSidebarOpen(true)}
           aria-label="Open sidebar"
+          className="rounded-full h-8 w-8 p-0"
         >
           →
         </Button>
@@ -42,13 +43,14 @@ export function Sidebar({ isAdmin }: Readonly<SidebarProps>) {
   }
 
   return (
-    <aside className="w-56 border-r bg-background flex flex-col">
+    <aside className="w-56 border-r border-border/50 bg-background/60 backdrop-blur-lg flex flex-col">
       <div className="flex justify-end p-2">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setSidebarOpen(false)}
           aria-label="Close sidebar"
+          className="rounded-full h-8 w-8 p-0"
         >
           ←
         </Button>
@@ -61,13 +63,13 @@ export function Sidebar({ isAdmin }: Readonly<SidebarProps>) {
               <Link
                 href={item.href}
                 className={[
-                  "flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors",
+                  "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
                   pathname === item.href
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-accent hover:text-accent-foreground",
+                    ? "bg-primary text-primary-foreground shadow-sm glow-primary"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                 ].join(" ")}
               >
-                <span aria-hidden>{item.icon}</span>
+                <span aria-hidden className="text-base">{item.icon}</span>
                 {item.label}
               </Link>
             </li>
@@ -83,13 +85,13 @@ export function Sidebar({ isAdmin }: Readonly<SidebarProps>) {
                   <Link
                     href={item.href}
                     className={[
-                      "flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors",
+                      "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
                       pathname === item.href
-                        ? "bg-primary text-primary-foreground"
-                        : "hover:bg-accent hover:text-accent-foreground",
+                        ? "bg-primary text-primary-foreground shadow-sm glow-primary"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                     ].join(" ")}
                   >
-                    <span aria-hidden>{item.icon}</span>
+                    <span aria-hidden className="text-base">{item.icon}</span>
                     {item.label}
                   </Link>
                 </li>

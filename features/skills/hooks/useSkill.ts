@@ -2,12 +2,12 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { SkillSummary } from "../types";
+import type { SkillDetail } from "../types";
 
-async function fetchSkill(id: string): Promise<SkillSummary> {
+async function fetchSkill(id: string): Promise<SkillDetail> {
   const res = await fetch(`/api/v1/skills/${id}`);
   if (!res.ok) throw new Error("Failed to fetch skill");
-  const json = await res.json() as { data: SkillSummary };
+  const json = await res.json() as { data: SkillDetail };
   return json.data;
 }
 

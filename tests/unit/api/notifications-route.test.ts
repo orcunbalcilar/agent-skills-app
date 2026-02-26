@@ -16,6 +16,10 @@ vi.mock("@/lib/api-helpers", () => ({
   checkLimit: vi.fn().mockReturnValue(null),
   getIp: vi.fn().mockReturnValue("127.0.0.1"),
   requireAuth: vi.fn(),
+  parsePagination: (sp: URLSearchParams, defaultPageSize = 12) => ({
+    page: Math.max(1, Math.floor(Number(sp.get("page") ?? 1)) || 1),
+    pageSize: Math.max(1, Math.min(100, Math.floor(Number(sp.get("pageSize") ?? defaultPageSize)) || defaultPageSize)),
+  }),
 }));
 
 import { GET } from "@/app/api/v1/notifications/route";

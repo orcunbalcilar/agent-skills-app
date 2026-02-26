@@ -9,7 +9,7 @@ vi.mock("@/lib/auth", () => ({
   auth: vi.fn(),
 }));
 
-import { checkLimit, getIp, rateLimitResponse, requireAuth } from "@/lib/api-helpers";
+import { checkLimit, getIp, rateLimitResponse, requireAuth, parsePagination } from "@/lib/api-helpers";
 import { rateLimit } from "@/lib/rate-limit";
 import { auth } from "@/lib/auth";
 import { NextRequest } from "next/server";
@@ -77,5 +77,57 @@ describe("requireAuth", () => {
     const result = await requireAuth();
     expect(result).not.toBeNull();
     expect(result?.user.id).toBe("u1");
+  });
+});
+
+describe("parsePagination", () => {
+  it("should return defaults with empty params", () => {
+    const sp = new URLSearchParams();
+    expect(parsePagination(sp)).toEqual({ page: 1, pageSize: 12 });
+  });
+
+  it("should respect custom default page size", () => {
+    const sp = new URLSearchParams();
+    expect(parsePagination(sp, 20)).toEqual({ page: 1, pageSize: 20 });
+  });
+
+  it("should parse valid page and pageSize", () => {
+    const sp = new URLSearchParams({ page: "3", pageSize: "25" });
+    expect(parsePagination(sp)).toEqual({ page: 3, pageSize: 25 });
+  });
+
+  it("should clamp negative page to 1", () => {
+    const sp = new URLSearchParams({ page: "-5" });
+    expect(parsePagination(sp).page).toBe(1);
+  });
+
+  it("should clamp zero page to 1", () => {
+    const sp = new URLSearchParams({ page: "0" });
+    expect(parsePagination(sp).page).toBe(1);
+  });
+
+  it("should clamp pageSize to max 100", () => {
+    const sp = new URLSearchParams({ pageSize: "500" });
+    expect(parsePagination(sp).pageSize).toBe(100);
+  });
+
+  it("should clamp pageSize to min 1", () => {
+    const sp = new URLSearchParams({ pageSize: "0" });
+    expect(parsePagination(sp).pageSize).toBe(12);
+  });
+
+  it("should handle NaN page gracefully", () => {
+    const sp = new URLSearchParams({ page: "abc" });
+    expect(parsePagination(sp).page).toBe(1);
+  });
+
+  it("should handle NaN pageSize gracefully", () => {
+    const sp = new URLSearchParams({ pageSize: "xyz" });
+    expect(parsePagination(sp).pageSize).toBe(12);
+  });
+
+  it("should floor decimal values", () => {
+    const sp = new URLSearchParams({ page: "2.7", pageSize: "15.9" });
+    expect(parsePagination(sp)).toEqual({ page: 2, pageSize: 15 });
   });
 });

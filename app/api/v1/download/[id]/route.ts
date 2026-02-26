@@ -25,8 +25,19 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     const { id } = await params;
     const session = await (await import("@/lib/auth")).auth();
 
-    const skill = await prisma.skill.findUnique({ where: { id } });
+    const skill = await prisma.skill.findUnique({
+      where: { id },
+      include: { owners: { select: { userId: true } } },
+    });
     if (!skill) return NextResponse.json({ error: "Not Found" }, { status: 404 });
+
+    if (skill.status === "TEMPLATE") {
+      const isOwner = skill.owners.some((o) => o.userId === session?.user?.id);
+      const isAdmin = (session?.user as { role?: string } | undefined)?.role === "ADMIN";
+      if (!isOwner && !isAdmin) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    }
 
     await prisma.$transaction([
       prisma.skillDownloadEvent.create({
@@ -48,7 +59,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 
     const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
 
-    return new NextResponse(zipBuffer, {
+    return new NextResponse(new Uint8Array(zipBuffer), {
       headers: {
         "Content-Type": "application/zip",
         "Content-Disposition": `attachment; filename="${skill.name}.zip"`,

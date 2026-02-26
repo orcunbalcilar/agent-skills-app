@@ -10,6 +10,7 @@ vi.mock("@/lib/rate-limit", () => ({
 vi.mock("@/lib/api-helpers", () => ({
   checkLimit: vi.fn().mockReturnValue(null),
   getIp: vi.fn().mockReturnValue("127.0.0.1"),
+  requireAuth: vi.fn().mockResolvedValue({ user: { id: "u1" } }),
 }));
 
 vi.mock("skills-ref", async (importOriginal) => {
@@ -18,7 +19,7 @@ vi.mock("skills-ref", async (importOriginal) => {
 });
 
 import { POST } from "@/app/api/v1/upload/route";
-import { checkLimit } from "@/lib/api-helpers";
+import { checkLimit, requireAuth } from "@/lib/api-helpers";
 import { parseFrontmatter } from "skills-ref";
 
 function makeSkillMd(name: string, description: string, body?: string): string {
@@ -60,6 +61,18 @@ describe("POST /api/v1/upload", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(checkLimit).mockReturnValue(null);
+    vi.mocked(requireAuth).mockResolvedValue({ user: { id: "u1" } } as never);
+  });
+
+  it("should return 401 when not authenticated", async () => {
+    vi.mocked(requireAuth).mockResolvedValueOnce(null as never);
+    const req = new NextRequest("http://localhost/api/v1/upload", {
+      method: "POST",
+      body: JSON.stringify({}),
+      headers: { "content-type": "application/json" },
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(401);
   });
 
   it("should reject non-multipart requests", async () => {
@@ -288,7 +301,7 @@ describe("POST /api/v1/upload", () => {
 
   it("should handle non-Error throw from parseFrontmatter", async () => {
     vi.mocked(parseFrontmatter).mockImplementation(() => {
-      throw "string error"; // eslint-disable-line no-throw-literal
+      throw "string error";
     });
 
     const zipBuffer = await createZipBuffer({

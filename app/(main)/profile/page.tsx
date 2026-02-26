@@ -37,20 +37,21 @@ export default function ProfilePage() {
   if (!user) return <p className="text-destructive">Not signed in.</p>;
 
   return (
-    <div className="space-y-8">
-      <Card>
-        <CardHeader>
+    <div className="space-y-8 animate-fade-in">
+      <Card className="border-border/50 overflow-hidden relative">
+        <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-transparent pointer-events-none" />
+        <CardHeader className="relative">
           <div className="flex items-center gap-4">
-            <Avatar className="size-16">
+            <Avatar className="size-16 ring-2 ring-primary/20 shadow-lg">
               <AvatarImage src={user.avatarUrl ?? undefined} />
-              <AvatarFallback className="text-xl">
+              <AvatarFallback className="text-xl bg-primary/10 text-primary font-bold">
                 {user.name.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div>
-              <CardTitle>{user.name}</CardTitle>
+              <CardTitle className="text-xl">{user.name}</CardTitle>
               <p className="text-sm text-muted-foreground">{user.email}</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Joined {new Date(user.createdAt).toLocaleDateString()}
               </p>
             </div>

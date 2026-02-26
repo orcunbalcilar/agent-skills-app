@@ -35,9 +35,9 @@ export function NotificationList() {
   const hasUnread = notifications.some((n) => !n.read);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-fade-in">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Notifications</h1>
+        <h1 className="text-2xl font-bold gradient-text">Notifications</h1>
         {hasUnread && (
           <Button
             variant="outline"
@@ -56,7 +56,7 @@ export function NotificationList() {
           return (
             <Card
               key={n.id}
-              className={n.read ? "opacity-60" : ""}
+              className={`border-border/50 transition-all duration-200 ${n.read ? "opacity-50" : "hover-lift"}`}
             >
               <CardContent className="flex items-center justify-between py-3">
                 <div className="flex items-center gap-3">

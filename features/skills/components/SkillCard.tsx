@@ -24,32 +24,32 @@ export function SkillCard({ skill }: Readonly<SkillCardProps>) {
     .slice(0, 3);
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="hover-lift group border-border/50 overflow-hidden">
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
           <Link href={`/skills/${skill.id}`}>
-            <CardTitle className="text-base hover:underline line-clamp-1">
+            <CardTitle className="text-base hover:text-primary transition-colors line-clamp-1">
               {skill.name}
             </CardTitle>
           </Link>
           <div className="flex gap-1 shrink-0 ml-2">
-            <Badge variant={skill.status === "RELEASED" ? "default" : "secondary"}>
+            <Badge variant={skill.status === "RELEASED" ? "default" : "secondary"} className="text-xs">
               {skill.status === "RELEASED" ? `v${skill.version}` : "template"}
             </Badge>
             {skill.forkedFromId && (
-              <Badge variant="outline" className="text-xs">forked</Badge>
+              <Badge variant="outline" className="text-xs border-border/50">🍴 forked</Badge>
             )}
           </div>
         </div>
-        <p className="text-sm text-muted-foreground line-clamp-2">{skill.description}</p>
+        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">{skill.description}</p>
       </CardHeader>
 
       <CardContent className="pb-2">
-        <div className="flex items-center gap-1 mb-2">
+        <div className="flex items-center gap-1.5 mb-2">
           {skill.owners?.slice(0, 3).map((o) => (
-            <Avatar key={o.userId} className="h-5 w-5">
+            <Avatar key={o.userId} className="h-5 w-5 ring-1 ring-border/50">
               <AvatarImage src={o.user.avatarUrl ?? undefined} alt={o.user.name} />
-              <AvatarFallback className="text-xs">{o.user.name[0]}</AvatarFallback>
+              <AvatarFallback className="text-[10px] bg-primary/10 text-primary">{o.user.name[0]}</AvatarFallback>
             </Avatar>
           ))}
           {skill.owners?.length > 3 && (
@@ -59,7 +59,7 @@ export function SkillCard({ skill }: Readonly<SkillCardProps>) {
 
         <div className="flex flex-wrap gap-1">
           {displayTags.map((st) => (
-            <Badge key={st.tagId} variant="outline" className="text-xs px-1.5 py-0">
+            <Badge key={st.tagId} variant="outline" className="text-xs px-1.5 py-0 border-border/50 text-muted-foreground">
               {st.tag.name}
             </Badge>
           ))}
@@ -69,11 +69,11 @@ export function SkillCard({ skill }: Readonly<SkillCardProps>) {
         </div>
       </CardContent>
 
-      <CardFooter className="pt-2 flex justify-between text-xs text-muted-foreground">
+      <CardFooter className="pt-2 flex justify-between text-xs text-muted-foreground border-t border-border/30">
         <div className="flex gap-3">
-          <span aria-label="Downloads">⬇️ {skill.downloadCount}</span>
-          <span aria-label="Followers">👥 {skill._count?.followers ?? 0}</span>
-          <span aria-label="Forks">🍴 {skill.forkCount}</span>
+          <span aria-label="Downloads" className="flex items-center gap-0.5">⬇️ {skill.downloadCount}</span>
+          <span aria-label="Followers" className="flex items-center gap-0.5">👥 {skill._count?.followers ?? 0}</span>
+          <span aria-label="Forks" className="flex items-center gap-0.5">🍴 {skill.forkCount}</span>
         </div>
         <div className="flex gap-1">
           {topReactions.map(([emoji, count]) => (

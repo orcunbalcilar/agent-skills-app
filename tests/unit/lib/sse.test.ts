@@ -9,7 +9,6 @@ const { mockQueryFn, mockEndFn, mockConnectFn, mockOnFn } = vi.hoisted(() => ({
 }));
 
 vi.mock("pg", () => {
-  // eslint-disable-next-line unicorn/consistent-function-scoping
   class Client {
     connect = mockConnectFn;
     query = mockQueryFn;

@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Agent Skills
+
+A collaborative platform for creating, discovering, and managing reusable AI agent skills. Teams can publish skill specifications, collaborate through change requests and comments, and build on each other's work through forking — all with real-time notifications and versioned history.
+
+## What You Can Do
+
+### Discover Skills
+
+- **Browse** the skill catalog with search, tag filters, and multiple sort options (most downloaded, newest, most followed, recently updated, alphabetical)
+- **View statistics** at a glance — total skills, total downloads, reaction counts, and follower trends
+- **Download** any released skill as a ZIP archive ready to use in your agent framework
+
+### Create & Publish
+
+- **Author skills** with a YAML specification editor (powered by Monaco), attach supporting files, and organize with tags
+- **Templates** let you draft and iterate before going live — only you and co-owners can see them
+- **Release** a skill to make it discoverable by everyone, creating a versioned sna- **Release**ica- **Release** a skill to make it discoverable by everyone, creating a versioned sna- **Release**ica- **Release** a skill to make it discoverable by everyone, creating a versioned sna- **Release**ica- **Release** a skill to make it discoverable by everyone, creating a versioned sna- **Rent- **Release** a s� f- **Release** a skkil- **Release** a skill to make it discoverable by everyone, creating a versioned sna- **Release**ica- **Release** a skill to make it discoverable by everyon someone comments, follows, forks, or reviews a change request
+- **Follow skills** you care about to receiv- **Follow skills** you care about to receiv- **Follow skills** you care about to receifi- **Follow skills**s y- **Follow skills** you care about to receiv- **Follow skills** you care about to receiv- **Follow skills** you care aboEmoji reactions** on skills and comments to express quick feedback
+
+### Admin Panel
+
+- **Orphaned skills** — find and clean up skills with no remaining owners
+- **Tag management** — create and delete custom tags; system tags are protected
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Node.js 25+**
+- **PostgreSQL** (local or Docker)
+- **pnpm** package manager
+- A **GitHub OAuth App** for authentication (Client ID + Secret)
+
+### Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/agent_skills"
+AUTH_SECRET="your-random-secret"
+AUTH_GITHUB_ID="your-github-oauth-client-id"
+AUTH_GITHUB_SECRET="your-github-oauth-client-secret"
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Install dependen# Install dependen# Install dependen# Install dependen# Install dependen# Install dependen# Install dependen# Install dependen# Install dependen# Install dependen# Install dependen# Install dependen# Install dependen# Install dependen# Install dependen# Install dependen# Install dependen# Install dependen# Install dependen# Install depend Te# Install deLayer# Install dependen# Install dependen# Install dependen# Install dependen#  | --------------------------------------------- |
+| Framework     | Next.js 16 (App | Framework     |   | Framework     tab| Framework     reSQL + Prisma 7                     | Framework     | Next.jNex| Framework     | Next.js 16 (App | Framework     |   | FramewoTan| Framework     | Next.j   | Framework     | Next.js 16 (App | Framand| Fra  | Framework     | Next.js 16 (App | Framework     |   | Framework   ts| Framework     | Next.js 16 (A U| Framework     | Next.js 16 (App | Framewo R| Framework     | Next.js 16 (App | Framework     |  |                            |
+| Charts        | Recharts                                      |
+| Analytics     | Matomo                                        |
+| Testing       | Vitest (unit) + Playwright (E2E)              |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Testing
 
-## Learn More
+```bash
+# Unit tests with coverage
+npx vitest run --coverage
 
-To learn more about Next.js, take a look at the following resources:
+# E2E tests
+npx playwright test
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Coverage thresholds: 100% statements, 100% lines, 99% branches, 98% functions.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project Structure
 
-## Deploy on Vercel
+```text
+app/              Pages and API routes (Next.js App Router)
+features/         Feature modules (skills, comments, change-requests, notifications, search, tags, users, stats)
+components/       Shared layout and UI components (shadcn/ui based)
+lib/              Server utilities (auth, prisma, SSE, rate limiting, search)
+stores/           Client state (Zustand — notifications, UI)
+prisma/           Database schema and migrations
+tests/unit/       Vitest unit tests
+tests/e2e/        Playwright E2E tests
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## License
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Private — not for redistribution.

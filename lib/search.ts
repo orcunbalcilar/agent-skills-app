@@ -19,8 +19,9 @@ export interface SearchParams {
   userId?: string;
 }
 
-type WhereInput = Parameters<typeof prisma.skill.findMany>[0]["where"];
-type OrderInput = Parameters<typeof prisma.skill.findMany>[0]["orderBy"];
+type FindManyArgs = NonNullable<Parameters<typeof prisma.skill.findMany>[0]>;
+type WhereInput = FindManyArgs["where"];
+type OrderInput = FindManyArgs["orderBy"];
 
 function buildWhere(params: SearchParams): WhereInput {
   const { query, tags, status, ownerId, userId } = params;
@@ -64,7 +65,8 @@ function buildWhere(params: SearchParams): WhereInput {
     });
   }
 
-  return conditions.length === 1 ? conditions[0] : { AND: conditions };
+  const filtered = conditions.filter(Boolean) as NonNullable<WhereInput>[];
+  return filtered.length === 1 ? filtered[0] : { AND: filtered };
 }
 
 function getSortOrder(sort: SortOption): OrderInput {

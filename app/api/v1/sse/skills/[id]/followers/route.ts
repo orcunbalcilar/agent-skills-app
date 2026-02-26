@@ -1,14 +1,12 @@
 // app/api/v1/sse/skills/[id]/followers/route.ts
 
-import { NextRequest } from "next/server";
 import { createSSEStream } from "@/lib/sse";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
-export async function GET(_req: NextRequest, { params }: RouteParams) {
+export async function GET(_req: Request, { params }: RouteParams) {
   const { id } = await params;
-  const encoder = new TextEncoder();
-  const stream = createSSEStream(`skill_followers:${id}`, encoder, () => {});
+  const { stream } = createSSEStream(`skill_followers:${id}`);
 
   return new Response(stream, {
     headers: {

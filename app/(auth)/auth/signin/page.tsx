@@ -14,12 +14,17 @@ export default function SignInPage() {
   const isDev = process.env.NODE_ENV === "development";
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle className="text-center">Sign in to Agent Skills</CardTitle>
+    <div className="flex min-h-screen items-center justify-center relative">
+      <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-primary/3 pointer-events-none" />
+      <Card className="w-full max-w-sm border-border/50 shadow-xl animate-fade-in relative">
+        <div className="absolute inset-0 rounded-[inherit] bg-linear-to-br from-primary/3 to-transparent pointer-events-none" />
+        <CardHeader className="relative">
+          <CardTitle className="text-center text-xl">
+            <span className="gradient-text font-bold">Agent Skills</span>
+            <p className="text-sm text-muted-foreground font-normal mt-1">Sign in to continue</p>
+          </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 relative">
           <Button
             className="w-full"
             onClick={() => signIn("github", { callbackUrl: "/" })}

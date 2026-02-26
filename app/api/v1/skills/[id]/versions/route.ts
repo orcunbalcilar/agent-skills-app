@@ -2,7 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { checkLimit, getIp } from "@/lib/api-helpers";
+import { checkLimit, getIp, parsePagination } from "@/lib/api-helpers";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -13,8 +13,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     const { searchParams } = req.nextUrl;
-    const page = Number(searchParams.get("page") ?? 1);
-    const pageSize = Number(searchParams.get("pageSize") ?? 20);
+    const { page, pageSize } = parsePagination(searchParams, 20);
 
     const [versions, total] = await Promise.all([
       prisma.skillVersion.findMany({

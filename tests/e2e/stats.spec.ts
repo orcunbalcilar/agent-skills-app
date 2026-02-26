@@ -10,6 +10,10 @@ test.describe("Statistics", () => {
   test("skill detail page should show stats tab", async ({ page }) => {
     await page.goto("/skills");
     await page.locator("main a[href^='/skills/']").first().click();
+    // Wait for navigation to complete
+    await page.waitForURL(/\/skills\/[^/]+$/);
+    // Wait for the tabs to be loaded
+    await page.waitForSelector("role=tab", { timeout: 10000 });
     // The Stats tab should be visible in the skill detail
     const statsTab = page.getByRole("tab", { name: /stats/i });
     await expect(statsTab).toBeVisible();

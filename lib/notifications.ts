@@ -1,5 +1,6 @@
 // lib/notifications.ts
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { pgNotify } from "@/lib/sse";
 
 export type NotificationType =
@@ -51,7 +52,7 @@ export async function dispatchNotification(
         data: {
           userId,
           type,
-          payload: payload as Record<string, unknown>,
+          payload: payload as unknown as Prisma.InputJsonValue,
           skillId: payload.skillId ?? null,
         },
       })

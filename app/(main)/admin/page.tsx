@@ -59,10 +59,10 @@ export default function AdminPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-bold">Admin Panel</h1>
+      <h1 className="text-2xl font-bold gradient-text">Admin Panel</h1>
 
       {/* Orphaned Skills */}
-      <Card>
+      <Card className="border-border/50">
         <CardHeader>
           <CardTitle>Orphaned Skills</CardTitle>
         </CardHeader>

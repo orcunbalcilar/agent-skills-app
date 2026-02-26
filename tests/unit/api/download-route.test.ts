@@ -127,4 +127,54 @@ describe("GET /api/v1/download/[id]", () => {
     const res = await GET(req, { params: Promise.resolve({ id: "s1" }) });
     expect(res.status).toBe(500);
   });
+
+  it("should return 403 for template skill when user is not owner", async () => {
+    const { auth } = await import("@/lib/auth");
+    vi.mocked(auth).mockResolvedValueOnce({ user: { id: "u2" } } as never);
+    vi.mocked(prisma.skill.findUnique).mockResolvedValue({
+      id: "s1",
+      name: "test-skill",
+      status: "TEMPLATE",
+      spec: { name: "test-skill", description: "A test skill" },
+      owners: [{ userId: "u1" }],
+    } as never);
+
+    const req = new NextRequest("http://localhost/api/v1/download/s1");
+    const res = await GET(req, { params: Promise.resolve({ id: "s1" }) });
+    expect(res.status).toBe(403);
+  });
+
+  it("should allow template download for owner", async () => {
+    const { auth } = await import("@/lib/auth");
+    vi.mocked(auth).mockResolvedValueOnce({ user: { id: "u1" } } as never);
+    vi.mocked(prisma.skill.findUnique).mockResolvedValue({
+      id: "s1",
+      name: "test-skill",
+      status: "TEMPLATE",
+      spec: { name: "test-skill", description: "A test skill" },
+      owners: [{ userId: "u1" }],
+    } as never);
+    vi.mocked(prisma.$transaction).mockResolvedValue([{}, {}] as never);
+
+    const req = new NextRequest("http://localhost/api/v1/download/s1");
+    const res = await GET(req, { params: Promise.resolve({ id: "s1" }) });
+    expect(res.status).toBe(200);
+  });
+
+  it("should allow template download for admin", async () => {
+    const { auth } = await import("@/lib/auth");
+    vi.mocked(auth).mockResolvedValueOnce({ user: { id: "u3", role: "ADMIN" } } as never);
+    vi.mocked(prisma.skill.findUnique).mockResolvedValue({
+      id: "s1",
+      name: "test-skill",
+      status: "TEMPLATE",
+      spec: { name: "test-skill", description: "A test skill" },
+      owners: [{ userId: "u1" }],
+    } as never);
+    vi.mocked(prisma.$transaction).mockResolvedValue([{}, {}] as never);
+
+    const req = new NextRequest("http://localhost/api/v1/download/s1");
+    const res = await GET(req, { params: Promise.resolve({ id: "s1" }) });
+    expect(res.status).toBe(200);
+  });
 });

@@ -2,7 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { checkLimit, getIp, requireAuth } from "@/lib/api-helpers";
+import { checkLimit, getIp, requireAuth, parsePagination } from "@/lib/api-helpers";
 
 export async function GET(req: NextRequest) {
   const limit = checkLimit(`GET /api/v1/notifications ${getIp(req)}`);
@@ -13,8 +13,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const { searchParams } = req.nextUrl;
-    const page = Number(searchParams.get("page") ?? 1);
-    const pageSize = Number(searchParams.get("pageSize") ?? 12);
+    const { page, pageSize } = parsePagination(searchParams);
 
     const [notifications, total] = await prisma.$transaction([
       prisma.notification.findMany({

@@ -1,6 +1,6 @@
 // app/api/v1/upload/route.ts
 
-import { checkLimit, getIp } from "@/lib/api-helpers";
+import { checkLimit, getIp, requireAuth } from "@/lib/api-helpers";
 import type { SkillFolderEntry } from "@/lib/skill-schema";
 import JSZip from "jszip";
 import { NextRequest, NextResponse } from "next/server";
@@ -100,6 +100,9 @@ function validateSkillEntries(
 export async function POST(req: NextRequest) {
   const limit = checkLimit(`POST /api/v1/upload ${getIp(req)}`);
   if (limit) return limit;
+
+  const session = await requireAuth();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
     const contentType = req.headers.get("content-type") ?? "";

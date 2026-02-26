@@ -37,7 +37,7 @@ export default function SkillsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Discover Skills</h1>
+      <h1 className="text-2xl font-bold gradient-text text-balance">Discover Skills</h1>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
         <div className="flex-1">
@@ -76,7 +76,7 @@ export default function SkillsPage() {
           </div>
 
           {data?.data.length === 0 && (
-            <p className="text-center text-muted-foreground py-8">No skills found.</p>
+            <p className="text-center text-muted-foreground py-12 text-sm">No skills found.</p>
           )}
 
           {data?.meta && data.meta.totalPages > 1 && (

@@ -88,8 +88,19 @@ describe("POST /api/v1/tags", () => {
     expect(res.status).toBe(401);
   });
 
+  it("should return 403 when not admin", async () => {
+    vi.mocked(requireAuth).mockResolvedValue({ user: { id: "u1", role: "USER" } } as never);
+
+    const req = new NextRequest("http://localhost/api/v1/tags", {
+      method: "POST",
+      body: JSON.stringify({ name: "test" }),
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(403);
+  });
+
   it("should return 400 when name is empty", async () => {
-    vi.mocked(requireAuth).mockResolvedValue({ user: { id: "u1" } } as never);
+    vi.mocked(requireAuth).mockResolvedValue({ user: { id: "u1", role: "ADMIN" } } as never);
 
     const req = new NextRequest("http://localhost/api/v1/tags", {
       method: "POST",
@@ -100,7 +111,7 @@ describe("POST /api/v1/tags", () => {
   });
 
   it("should upsert tag and return 201", async () => {
-    vi.mocked(requireAuth).mockResolvedValue({ user: { id: "u1" } } as never);
+    vi.mocked(requireAuth).mockResolvedValue({ user: { id: "u1", role: "ADMIN" } } as never);
     vi.mocked(prisma.tag.upsert).mockResolvedValue({ id: "t1", name: "react" } as never);
 
     const req = new NextRequest("http://localhost/api/v1/tags", {
@@ -121,7 +132,7 @@ describe("POST /api/v1/tags", () => {
   });
 
   it("should handle errors gracefully", async () => {
-    vi.mocked(requireAuth).mockResolvedValue({ user: { id: "u1" } } as never);
+    vi.mocked(requireAuth).mockResolvedValue({ user: { id: "u1", role: "ADMIN" } } as never);
     vi.mocked(prisma.tag.upsert).mockRejectedValue(new Error("DB error"));
     const req = new NextRequest("http://localhost/api/v1/tags", {
       method: "POST",

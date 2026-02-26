@@ -50,6 +50,13 @@ export interface SkillSummary {
   _count?: { comments: number; followers: number; changeRequests: number };
 }
 
+export interface SkillDetail extends SkillSummary {
+  spec: Record<string, unknown>;
+  files?: Array<{ path: string; content: string }>;
+  followers?: Array<{ userId: string }>;
+  followerSnapshots?: Array<{ snapshotDate: string; count: number }>;
+}
+
 export interface SkillStats {
   downloadCount: number;
   forkCount: number;

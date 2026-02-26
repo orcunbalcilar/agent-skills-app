@@ -26,15 +26,10 @@ import {
   useToggleFollow,
   useToggleSkillReaction,
 } from "../hooks/useSkillMutations";
-import type { SkillSummary } from "../types";
+import type { SkillDetail as SkillDetailType } from "../types";
 
 interface SkillDetailProps {
-  skill: SkillSummary & {
-    spec: Record<string, unknown>;
-    files?: Array<{ path: string; content: string }>;
-    followers?: Array<{ userId: string }>;
-    followerSnapshots?: Array<{ snapshotDate: string; count: number }>;
-  };
+  skill: SkillDetailType;
 }
 
 export function SkillDetail({ skill }: Readonly<SkillDetailProps>) {
@@ -88,21 +83,21 @@ export function SkillDetail({ skill }: Readonly<SkillDetailProps>) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold">{skill.name}</h1>
-            <Badge variant={skill.status === "RELEASED" ? "default" : "secondary"}>
+            <h1 className="text-2xl font-bold tracking-tight">{skill.name}</h1>
+            <Badge variant={skill.status === "RELEASED" ? "default" : "secondary"} className="font-medium">
               {skill.status}
               {skill.status === "RELEASED" && ` v${skill.version}`}
             </Badge>
           </div>
-          <p className="text-muted-foreground">{skill.description}</p>
+          <p className="text-muted-foreground leading-relaxed">{skill.description}</p>
           {skill.forkedFromId && (
-            <p className="text-xs text-muted-foreground">
-              Forked from another skill
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <span>🍴</span> Forked from another skill
             </p>
           )}
         </div>
@@ -110,12 +105,12 @@ export function SkillDetail({ skill }: Readonly<SkillDetailProps>) {
 
       {/* Owners */}
       <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">Owners:</span>
+        <span className="text-sm text-muted-foreground font-medium">Owners:</span>
         {skill.owners.map((o) => (
-          <div key={o.userId} className="flex items-center gap-1">
-            <Avatar className="size-6">
+          <div key={o.userId} className="flex items-center gap-1.5 bg-muted/50 rounded-full pl-0.5 pr-2.5 py-0.5">
+            <Avatar className="size-5 ring-1 ring-border/50">
               <AvatarImage src={o.user.avatarUrl ?? undefined} />
-              <AvatarFallback>{o.user.name.charAt(0).toUpperCase()}</AvatarFallback>
+              <AvatarFallback className="text-[10px] bg-primary/10 text-primary">{o.user.name.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
             <span className="text-sm">{o.user.name}</span>
           </div>
@@ -124,9 +119,9 @@ export function SkillDetail({ skill }: Readonly<SkillDetailProps>) {
 
       {/* Tags */}
       {skill.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1.5">
           {skill.tags.map((t) => (
-            <Badge key={t.tagId} variant="outline">
+            <Badge key={t.tagId} variant="outline" className="border-border/50">
               {t.tag.name}
             </Badge>
           ))}
@@ -134,7 +129,7 @@ export function SkillDetail({ skill }: Readonly<SkillDetailProps>) {
       )}
 
       {/* Action bar */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 p-3 rounded-lg bg-muted/30 border border-border/30">
         {userId && (
           <Button
             variant={isFollowing ? "secondary" : "default"}

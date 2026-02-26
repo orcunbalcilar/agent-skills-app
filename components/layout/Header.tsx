@@ -54,8 +54,8 @@ export function Header({ user }: Readonly<HeaderProps>) {
     .toUpperCase();
 
   return (
-    <header className="border-b bg-background sticky top-0 z-50 h-14 flex items-center px-4 gap-4">
-      <Link href="/" className="font-bold text-lg shrink-0">
+    <header className="border-b border-border/50 bg-background/80 backdrop-blur-xl sticky top-0 z-50 h-14 flex items-center px-4 gap-4">
+      <Link href="/" className="font-bold text-lg shrink-0 gradient-text tracking-tight">
         AgentSkills
       </Link>
 
@@ -66,16 +66,17 @@ export function Header({ user }: Readonly<HeaderProps>) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           aria-label="Search skills"
-          className="h-8"
+          className="h-8 bg-muted/50 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all"
         />
       </form>
 
-      <div className="flex items-center gap-2 ml-auto">
+      <div className="flex items-center gap-1.5 ml-auto">
         <Button
           variant="ghost"
           size="sm"
           onClick={toggleTheme}
           aria-label="Toggle dark/light mode"
+          className="rounded-full h-8 w-8 p-0"
         >
           {theme === "dark" ? "☀️" : "🌙"}
         </Button>
@@ -88,15 +89,15 @@ export function Header({ user }: Readonly<HeaderProps>) {
                 className="relative h-8 w-8 rounded-full p-0"
                 aria-label="User menu"
               >
-                <Avatar className="h-8 w-8">
+                <Avatar className="h-8 w-8 ring-2 ring-primary/20 transition-all hover:ring-primary/40">
                   <AvatarImage
                     src={user.image ?? undefined}
                     alt={user.name ?? "User"}
                   />
-                  <AvatarFallback>{initials ?? "U"}</AvatarFallback>
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">{initials ?? "U"}</AvatarFallback>
                 </Avatar>
                 {unreadCount > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-xs">
+                  <Badge className="absolute -top-1.5 -right-1.5 h-4 min-w-4 p-0 flex items-center justify-center text-[10px] font-bold glow-accent animate-fade-in">
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </Badge>
                 )}
