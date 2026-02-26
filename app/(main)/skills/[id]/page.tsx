@@ -1,10 +1,10 @@
 // app/(main)/skills/[id]/page.tsx
 "use client";
 
-import { useParams } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
 import { SkillDetail } from "@/features/skills/components/SkillDetail";
 import { useSkill } from "@/features/skills/hooks/useSkill";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useParams } from "next/navigation";
 
 export default function SkillDetailPage() {
   const params = useParams<{ id: string }>();
