@@ -47,11 +47,7 @@ function validateSkillEntries(
   | { data: Record<string, unknown>; files: SkillFolderEntry[] } {
   if (entries.length === 0) return { error: "Zip archive is empty" };
 
-  console.log("Entries:", entries);
-
   const rootPrefix = detectRootPrefix(entries);
-
-  console.log("Detected root prefix:", rootPrefix);
 
   const skillMdEntry = entries.find(
     (e) => e.path === rootPrefix + "SKILL.md" || e.path === "SKILL.md",
@@ -102,7 +98,8 @@ export async function POST(req: NextRequest) {
   if (limit) return limit;
 
   const session = await requireAuth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
     const contentType = req.headers.get("content-type") ?? "";
@@ -141,7 +138,15 @@ export async function POST(req: NextRequest) {
       (name) =>
         !zip.files[name].dir &&
         !name.startsWith("__MACOSX/") &&
-        !name.split("/").some((seg) => seg.startsWith("._") || seg === ".DS_Store" || seg === "Thumbs.db" || seg === "desktop.ini"),
+        !name
+          .split("/")
+          .some(
+            (seg) =>
+              seg.startsWith("._") ||
+              seg === ".DS_Store" ||
+              seg === "Thumbs.db" ||
+              seg === "desktop.ini",
+          ),
     );
     for (const name of fileNames) {
       const content = await zip.files[name].async("string");
