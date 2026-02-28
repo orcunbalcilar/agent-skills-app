@@ -51,6 +51,6 @@
 - Non-standard skill directories (beyond scripts/, references/, assets/) produce warnings instead of hard errors — widely used skills may have extra dirs like rules/
 - Prisma seed scripts must guard against production with `NODE_ENV` check
 - Use `prisma migrate deploy` (not `prisma migrate dev`) in production/CI — it applies pending migrations non-interactively
-- Vercel deployments need a `vercel-build` script: `prisma generate && DATABASE_URL=$DIRECT_URL prisma migrate deploy && next build`
-- `dotenv-cli` uses `-e` flag (not `-f`) to specify env files — `-f` is silently ignored
+- Vercel deployments need a `vercel-build` script: `prisma generate && prisma migrate deploy && next build`
+- No dotenv needed for vercel deployments. Vercel injects env vars at build/runtime; locally use `direnv` or shell exports
 - Supabase PgBouncer (port 6543) hangs on `prisma migrate deploy` — use session mode (port 5432) via `DIRECT_URL` for migrations

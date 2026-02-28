@@ -5,12 +5,12 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "vercel-build": "prisma generate && DATABASE_URL=$DIRECT_URL prisma migrate deploy && next build",
+    "vercel-build": "prisma generate && prisma migrate deploy && next build",
     "start": "node .next/standalone/server.js",
     "lint": "eslint",
     "db:seed": "tsx prisma/seed.ts",
     "db:migrate": "prisma migrate dev",
-    "db:deploy": "dotenv -e .env.local -- prisma migrate deploy",
+    "db:deploy": "prisma migrate deploy",
     "db:generate": "prisma generate",
     "postinstall": "prisma generate"
   },
@@ -60,8 +60,7 @@
     "@vitejs/plugin-react": "^5.1.4",
     "@vitest/coverage-v8": "^4.0.18",
     "babel-plugin-react-compiler": "^1.0.0",
-    "dotenv": "^17.3.1",
-    "dotenv-cli": "^11.0.0",
+
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "jsdom": "^28.1.0",
