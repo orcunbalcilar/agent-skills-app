@@ -14,7 +14,11 @@ test.describe('Skill deletion', () => {
       data: {
         name: uniqueName,
         description: 'Skill created solely for deletion test',
-        spec: { name: uniqueName, description: 'Skill created solely for deletion test', body: 'temp' },
+        spec: {
+          name: uniqueName,
+          description: 'Skill created solely for deletion test',
+          body: 'temp',
+        },
         files: [{ path: 'SKILL.md', content: `---\nname: ${uniqueName}\n---\n` }],
       },
     });

@@ -39,14 +39,13 @@ export function SkillSpecViewer({ spec, files }: Readonly<SkillSpecViewerProps>)
         <div>
           <h3 className="text-muted-foreground mb-1 text-sm font-semibold">Compatibility</h3>
           <div className="flex flex-wrap gap-1">
-            {(Array.isArray(s.compatibility)
-              ? s.compatibility
-              : s.compatibility.split(',')
-            ).map((c) => (
-              <Badge key={c.trim()} variant="secondary">
-                {c.trim()}
-              </Badge>
-            ))}
+            {(Array.isArray(s.compatibility) ? s.compatibility : s.compatibility.split(',')).map(
+              (c) => (
+                <Badge key={c.trim()} variant="secondary">
+                  {c.trim()}
+                </Badge>
+              ),
+            )}
           </div>
         </div>
       )}

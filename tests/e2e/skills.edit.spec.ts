@@ -85,7 +85,11 @@ test.describe('Skill PATCH validation', () => {
       data: {
         name: uniqueName,
         description: 'Skill created for PATCH validation tests',
-        spec: { name: uniqueName, description: 'Skill created for PATCH validation tests', body: 'temp' },
+        spec: {
+          name: uniqueName,
+          description: 'Skill created for PATCH validation tests',
+          body: 'temp',
+        },
         files: [{ path: 'SKILL.md', content: `---\nname: ${uniqueName}\n---\n` }],
       },
     });

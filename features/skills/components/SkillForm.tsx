@@ -117,10 +117,11 @@ export function SkillForm({ mode, initialData }: Readonly<SkillFormProps>) {
 
       setParsedSpec(json.data ?? null);
       setUploadedFile(file);
-      setFiles(json.files ?? []);
+      const responseFiles = json.files ?? [];
+      setFiles(responseFiles);
       isDirty.current = true;
-      if (json.files?.length) {
-        setSelectedPath(json.files[0].path);
+      if (responseFiles.length > 0) {
+        setSelectedPath(responseFiles[0].path);
       }
     } catch {
       setError('Failed to upload file');
@@ -155,9 +156,9 @@ export function SkillForm({ mode, initialData }: Readonly<SkillFormProps>) {
         });
         const data = result.data as { id: string };
         router.push(`/skills/${data.id}`);
-      } else if (initialData) {
+      } else {
         await updateSkill.mutateAsync({
-          id: initialData.id,
+          id: initialData!.id,
           name,
           description,
           spec: parsedSpec,
@@ -165,7 +166,7 @@ export function SkillForm({ mode, initialData }: Readonly<SkillFormProps>) {
           tags: selectedTags,
           editMessage: editMessage || undefined,
         });
-        router.push(`/skills/${initialData.id}`);
+        router.push(`/skills/${initialData!.id}`);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save skill');
@@ -173,11 +174,10 @@ export function SkillForm({ mode, initialData }: Readonly<SkillFormProps>) {
   };
 
   const handleRelease = async () => {
-    if (!initialData) return;
     try {
-      await releaseSkill.mutateAsync(initialData.id);
+      await releaseSkill.mutateAsync(initialData!.id);
       setReleaseDialogOpen(false);
-      router.push(`/skills/${initialData.id}`);
+      router.push(`/skills/${initialData!.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to release skill');
     }
