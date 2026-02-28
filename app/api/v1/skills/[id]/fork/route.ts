@@ -33,6 +33,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
           name: `${parent.name}-fork`,
           description: parent.description,
           spec: parent.spec as Parameters<typeof prisma.skill.create>[0]['data']['spec'],
+          files: parent.files as Parameters<typeof prisma.skill.create>[0]['data']['files'],
           status: 'TEMPLATE',
           version: 1,
           forkedFromId: id,

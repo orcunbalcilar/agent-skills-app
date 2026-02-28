@@ -4,8 +4,8 @@ import { test, expect } from '@playwright/test';
 test.describe('Skill search and filtering', () => {
   test('should search skills by text', async ({ page }) => {
     await page.goto('/skills');
-    // Use the header search input (type=search with aria-label)
-    await page.getByRole('searchbox', { name: /search skills/i }).fill('test');
+    // Use the skills page search input (SearchBar component)
+    await page.getByPlaceholder('Search skills...').fill('test');
     await page.keyboard.press('Enter');
 
     // Results should filter

@@ -4,8 +4,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 
 // Hoisted variables for vi.mock factories
-const { mockPush, mockSignOut, mockToggleTheme } = vi.hoisted(() => ({
-  mockPush: vi.fn(),
+const { mockSignOut, mockToggleTheme } = vi.hoisted(() => ({
   mockSignOut: vi.fn(),
   mockToggleTheme: vi.fn(),
 }));
@@ -17,9 +16,7 @@ vi.mock('next/link', () => ({
 }));
 
 // Mock next/navigation
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: mockPush }),
-}));
+vi.mock('next/navigation', () => ({}));
 
 // Mock next-auth/react
 vi.mock('next-auth/react', () => ({
@@ -71,27 +68,12 @@ describe('Header', () => {
 
   it('should render the logo', () => {
     render(<Header />);
-    expect(screen.getByText('AgentSkills')).toBeInTheDocument();
+    expect(screen.getByText('Skills')).toBeInTheDocument();
   });
 
-  it('should render search input', () => {
+  it('should not render search input', () => {
     render(<Header />);
-    expect(screen.getByLabelText('Search skills')).toBeInTheDocument();
-  });
-
-  it('should navigate on search submit', () => {
-    render(<Header />);
-    const input = screen.getByLabelText('Search skills');
-    fireEvent.change(input, { target: { value: 'test query' } });
-    fireEvent.submit(input.closest('form')!);
-    expect(mockPush).toHaveBeenCalledWith('/skills?q=test%20query');
-  });
-
-  it('should not navigate on empty search submit', () => {
-    render(<Header />);
-    const input = screen.getByLabelText('Search skills');
-    fireEvent.submit(input.closest('form')!);
-    expect(mockPush).not.toHaveBeenCalled();
+    expect(screen.queryByLabelText('Search skills')).not.toBeInTheDocument();
   });
 
   it('should render theme toggle button', () => {

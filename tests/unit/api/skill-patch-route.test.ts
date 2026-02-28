@@ -217,14 +217,12 @@ describe('PATCH /api/v1/skills/[id]', () => {
     const mockTx = {
       skillVersion: { create: vi.fn().mockResolvedValue({}) },
       skill: {
-        update: vi
-          .fn()
-          .mockResolvedValue({
-            id: 's1',
-            version: 2,
-            spec: { name: 's1' },
-            files: [{ path: 'a.txt' }],
-          }),
+        update: vi.fn().mockResolvedValue({
+          id: 's1',
+          version: 2,
+          spec: { name: 's1' },
+          files: [{ path: 'a.txt' }],
+        }),
       },
       skillTag: { deleteMany: vi.fn(), createMany: vi.fn() },
       tag: { findMany: vi.fn().mockResolvedValue([]) },

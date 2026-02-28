@@ -85,6 +85,7 @@ describe('POST /api/v1/skills/[id]/fork', () => {
       status: 'RELEASED',
       description: 'desc',
       spec: { name: 'original' },
+      files: [{ path: 'SKILL.md', content: '---\nname: original\n---' }],
       forkCount: 2,
       owners: [{ userId: 'o1' }],
       tags: [{ tagId: 't1' }],
@@ -104,6 +105,34 @@ describe('POST /api/v1/skills/[id]/fork', () => {
       expect.objectContaining({ skillId: 's1' }),
     );
     expect(pgNotify).toHaveBeenCalledTimes(2);
+  });
+
+  it('should copy files from parent when forking', async () => {
+    const parentFiles = [
+      { path: 'SKILL.md', content: '---\nname: test\n---' },
+      { path: 'scripts/setup.sh', content: '#!/bin/bash' },
+    ];
+    vi.mocked(prisma.skill.findUnique).mockResolvedValue({
+      id: 's1',
+      name: 'original',
+      status: 'RELEASED',
+      description: 'desc',
+      spec: { name: 'original' },
+      files: parentFiles,
+      forkCount: 0,
+      owners: [],
+      tags: [],
+    } as never);
+    vi.mocked(prisma.$transaction).mockResolvedValue([{ id: 'f1' }, {}] as never);
+    vi.mocked(prisma.skillOwner.create).mockResolvedValue({} as never);
+
+    const req = new NextRequest('http://localhost/api/v1/skills/s1/fork', { method: 'POST' });
+    await POST(req, { params: Promise.resolve({ id: 's1' }) });
+
+    // Verify the transaction was called with files included
+    expect(prisma.$transaction).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({})]),
+    );
   });
 
   it('should skip tag copy when no tags', async () => {

@@ -6,12 +6,11 @@ import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useUIStore } from '@/stores/ui-store';
 import { Separator } from '@/components/ui/separator';
-import { ChevronLeft, Home, PanelLeft, Search, Settings, Sparkles } from 'lucide-react';
+import { ChevronLeft, PanelLeft, Search, Settings, Sparkles } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 const NAV_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
-  { href: '/', label: 'Home', icon: Home },
-  { href: '/skills', label: 'Discover Skills', icon: Search },
+  { href: '/skills', label: 'Discover', icon: Search },
   { href: '/skills/new', label: 'Create Skill', icon: Sparkles },
 ];
 

@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Agent Skills',
-  description: 'AI Agent Skills Management Platform',
+  title: 'Skills',
+  description: 'AI Agent Skills Platform',
 };
 
 export default function RootLayout({

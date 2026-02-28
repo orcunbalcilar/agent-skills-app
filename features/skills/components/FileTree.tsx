@@ -3,6 +3,19 @@
 
 import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
+import {
+  ChevronDown,
+  ChevronRight,
+  FileText,
+  FileCode2,
+  FileJson,
+  FileType,
+  Folder,
+  FolderOpen,
+  Terminal,
+  Settings,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 export interface SkillFile {
   path: string;
@@ -49,29 +62,27 @@ function sortTree(nodes: TreeNode[]): TreeNode[] {
     });
 }
 
-function getFileIcon(name: string): string {
+function getFileIcon(name: string): LucideIcon {
   const ext = name.split('.').pop()?.toLowerCase();
   switch (ext) {
     case 'md':
-      return '📄';
+      return FileText;
     case 'ts':
     case 'tsx':
-      return '🟦';
     case 'js':
     case 'jsx':
-      return '🟨';
+    case 'py':
+      return FileCode2;
     case 'json':
-      return '📋';
+      return FileJson;
     case 'yaml':
     case 'yml':
-      return '⚙️';
-    case 'py':
-      return '🐍';
+      return Settings;
     case 'sh':
     case 'bash':
-      return '🖥️';
+      return Terminal;
     default:
-      return '📃';
+      return FileType;
   }
 }
 
@@ -96,8 +107,16 @@ function TreeNodeItem({ node, depth, selectedPath, onSelect }: Readonly<TreeNode
           )}
           onClick={() => setExpanded(!expanded)}
         >
-          <span className="text-xs">{expanded ? '▼' : '▶'}</span>
-          <span>📁</span>
+          {expanded ? (
+            <ChevronDown className="size-3.5 shrink-0" />
+          ) : (
+            <ChevronRight className="size-3.5 shrink-0" />
+          )}
+          {expanded ? (
+            <FolderOpen className="size-3.5 shrink-0 text-amber-500" />
+          ) : (
+            <Folder className="size-3.5 shrink-0 text-amber-500" />
+          )}
           <span>{node.name}</span>
         </button>
         {expanded &&
@@ -124,7 +143,10 @@ function TreeNodeItem({ node, depth, selectedPath, onSelect }: Readonly<TreeNode
       )}
       onClick={() => onSelect(node.path)}
     >
-      <span>{getFileIcon(node.name)}</span>
+      {(() => {
+        const Icon = getFileIcon(node.name);
+        return <Icon className="size-3.5 shrink-0" />;
+      })()}
       <span className="truncate">{node.name}</span>
     </button>
   );

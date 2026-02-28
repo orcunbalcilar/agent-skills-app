@@ -11,14 +11,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
 import { useNotificationStore } from '@/stores/notification-store';
 import { useUIStore } from '@/stores/ui-store';
 import { Bell, LogOut, Moon, Settings, Sun, User } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useCallback, useState } from 'react';
 
 interface HeaderUser {
   name?: string | null;
@@ -31,21 +28,9 @@ interface HeaderProps {
 }
 
 export function Header({ user }: Readonly<HeaderProps>) {
-  const router = useRouter();
   const toggleTheme = useUIStore((s) => s.toggleTheme);
   const theme = useUIStore((s) => s.theme);
   const unreadCount = useNotificationStore((s) => s.unreadCount);
-  const [search, setSearch] = useState('');
-
-  const handleSearch = useCallback(
-    (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      if (search.trim()) {
-        router.push(`/skills?q=${encodeURIComponent(search.trim())}`);
-      }
-    },
-    [router, search],
-  );
 
   const initials = user?.name
     ?.split(' ')
@@ -57,19 +42,8 @@ export function Header({ user }: Readonly<HeaderProps>) {
   return (
     <header className="border-border/50 bg-background/80 sticky top-0 z-50 flex h-14 items-center gap-4 border-b px-4 backdrop-blur-xl">
       <Link href="/" className="gradient-text shrink-0 text-lg font-bold tracking-tight">
-        AgentSkills
+        Skills
       </Link>
-
-      <form onSubmit={handleSearch} className="max-w-md flex-1">
-        <Input
-          type="search"
-          placeholder="Search skills…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          aria-label="Search skills"
-          className="bg-muted/50 border-border/50 focus:border-primary/50 focus:ring-primary/20 h-8 transition-all"
-        />
-      </form>
 
       <div className="ml-auto flex items-center gap-1.5">
         <Button

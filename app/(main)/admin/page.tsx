@@ -17,6 +17,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { useTags, useCreateTag, useDeleteTag } from '@/features/tags/hooks/useTags';
 import { Input } from '@/components/ui/input';
+import { X } from 'lucide-react';
 
 interface OrphanedSkill {
   id: string;
@@ -151,7 +152,7 @@ export default function AdminPage() {
                     className="hover:text-destructive ml-1"
                     aria-label={`Delete tag ${tag.name}`}
                   >
-                    ×
+                    <X className="size-3" />
                   </button>
                 )}
               </Badge>

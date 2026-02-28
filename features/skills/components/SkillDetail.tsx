@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { SkillSpecViewer } from './SkillSpecViewer';
 import { SkillStats } from './SkillStats';
@@ -25,6 +26,7 @@ import { CommentThread } from '@/features/comments/components/CommentThread';
 import { ChangeRequestList } from '@/features/change-requests/components/ChangeRequestList';
 import { ChangeRequestForm } from '@/features/change-requests/components/ChangeRequestForm';
 import { toast } from 'sonner';
+import { GitFork } from 'lucide-react';
 import {
   useDeleteSkill,
   useReleaseSkill,
@@ -106,7 +108,7 @@ export function SkillDetail({ skill }: Readonly<SkillDetailProps>) {
           <p className="text-muted-foreground leading-relaxed">{skill.description}</p>
           {skill.forkedFromId && (
             <p className="text-muted-foreground flex items-center gap-1 text-xs">
-              <span>🍴</span> Forked from another skill
+              <GitFork className="size-3.5" /> Forked from another skill
             </p>
           )}
         </div>
@@ -266,11 +268,11 @@ export function SkillDetail({ skill }: Readonly<SkillDetailProps>) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Skill</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete &ldquo;{skill.name}&rdquo;? This action cannot be
+              undone.
+            </DialogDescription>
           </DialogHeader>
-          <p className="text-muted-foreground text-sm">
-            Are you sure you want to delete &ldquo;{skill.name}&rdquo;? This action cannot be
-            undone.
-          </p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
               Cancel
@@ -287,10 +289,10 @@ export function SkillDetail({ skill }: Readonly<SkillDetailProps>) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Release Skill</DialogTitle>
+            <DialogDescription>
+              Releasing is irreversible. This skill will be publicly visible as v1. Proceed?
+            </DialogDescription>
           </DialogHeader>
-          <p className="text-muted-foreground text-sm">
-            Releasing is irreversible. This skill will be publicly visible as v1. Proceed?
-          </p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setReleaseDialogOpen(false)}>
               Cancel

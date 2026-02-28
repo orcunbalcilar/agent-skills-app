@@ -24,6 +24,7 @@
 - SSE route files (notifications, followers, stats) report 50% funcs even though GET functions are exported, called, and 100% stmt/branch/line covered — this is a v8 provider artifact
 - `notifications.ts` reports 83.33% funcs for the same reason
 - `upload/route.ts` has 1 unreachable branch: `|| e.path === "SKILL.md"` in `find()` when `rootPrefix` is non-empty (structurally impossible since non-empty prefix means ALL entries share that prefix)
+- `SkillForm.tsx` lines 158/176: `else if (initialData)` and `if (!initialData) return` are defensive guards structurally unreachable because edit mode always supplies `initialData`. Line 118 `json.files?.length` has a phantom branch from `?.` optional chaining.
 
 ### E2E Tests
 

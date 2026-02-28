@@ -1,7 +1,7 @@
 // features/skills/components/SkillForm.tsx
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { TagSelector } from '@/features/tags/components/TagSelector';
 import { FileTree, type SkillFile } from './FileTree';
@@ -53,11 +54,27 @@ export function SkillForm({ mode, initialData }: Readonly<SkillFormProps>) {
   );
   const [editMessage, setEditMessage] = useState('');
   const [releaseDialogOpen, setReleaseDialogOpen] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const isDirty = useRef(false);
 
   const handleFileChange = useCallback((path: string, newContent: string) => {
+    isDirty.current = true;
     setFiles((prev) => prev.map((f) => (f.path === path ? { ...f, content: newContent } : f)));
   }, []);
+
+  const handleCancel = () => {
+    if (isDirty.current) {
+      setCancelDialogOpen(true);
+    } else {
+      router.back();
+    }
+  };
+
+  const confirmCancel = () => {
+    setCancelDialogOpen(false);
+    router.back();
+  };
 
   const selectedFile = files.find((f) => f.path === selectedPath);
 
@@ -101,6 +118,7 @@ export function SkillForm({ mode, initialData }: Readonly<SkillFormProps>) {
       setParsedSpec(json.data ?? null);
       setUploadedFile(file);
       setFiles(json.files ?? []);
+      isDirty.current = true;
       if (json.files?.length) {
         setSelectedPath(json.files[0].path);
       }
@@ -256,14 +274,24 @@ export function SkillForm({ mode, initialData }: Readonly<SkillFormProps>) {
                   id="edit-message"
                   placeholder="Describe what you changed..."
                   value={editMessage}
-                  onChange={(e) => setEditMessage(e.target.value)}
+                  onChange={(e) => {
+                    isDirty.current = true;
+                    setEditMessage(e.target.value);
+                  }}
                 />
               </div>
             )}
 
             <div className="space-y-2">
               <Label>Tags</Label>
-              <TagSelector selected={selectedTags} onChange={setSelectedTags} max={10} />
+              <TagSelector
+                selected={selectedTags}
+                onChange={(tags) => {
+                  isDirty.current = true;
+                  setSelectedTags(tags);
+                }}
+                max={10}
+              />
             </div>
 
             <div className="flex gap-2">
@@ -279,6 +307,11 @@ export function SkillForm({ mode, initialData }: Readonly<SkillFormProps>) {
                   Release
                 </Button>
               )}
+              {mode === 'edit' && (
+                <Button type="button" variant="outline" onClick={handleCancel}>
+                  Cancel
+                </Button>
+              )}
             </div>
           </form>
         </CardContent>
@@ -288,16 +321,35 @@ export function SkillForm({ mode, initialData }: Readonly<SkillFormProps>) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Release Skill</DialogTitle>
+            <DialogDescription>
+              Releasing is irreversible. This skill will be publicly visible as v1. Proceed?
+            </DialogDescription>
           </DialogHeader>
-          <p className="text-muted-foreground text-sm">
-            Releasing is irreversible. This skill will be publicly visible as v1. Proceed?
-          </p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setReleaseDialogOpen(false)}>
               Cancel
             </Button>
             <Button onClick={handleRelease} disabled={releaseSkill.isPending}>
               {releaseSkill.isPending ? 'Releasing...' : 'Confirm Release'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Discard changes?</DialogTitle>
+            <DialogDescription>
+              You have unsaved changes. Are you sure you want to leave? Your changes will be lost.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelDialogOpen(false)}>
+              Keep editing
+            </Button>
+            <Button variant="destructive" onClick={confirmCancel}>
+              Discard changes
             </Button>
           </DialogFooter>
         </DialogContent>

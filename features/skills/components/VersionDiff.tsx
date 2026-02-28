@@ -7,6 +7,7 @@ import { SkillDiffEditor } from './SkillCodeEditor';
 import { FileTree, type SkillFile } from './FileTree';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ArrowRight } from 'lucide-react';
 
 interface VersionDiffProps {
   skillId: string;
@@ -52,7 +53,7 @@ export function VersionDiff({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Badge variant="outline">v{fromVersion}</Badge>
-          <span className="text-muted-foreground">→</span>
+          <ArrowRight className="text-muted-foreground size-4" />
           <Badge variant="outline">v{toVersion}</Badge>
         </div>
         <Button variant="ghost" size="sm" onClick={onClose}>

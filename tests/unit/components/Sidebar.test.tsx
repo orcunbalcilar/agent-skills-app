@@ -43,8 +43,7 @@ describe('Sidebar', () => {
 
   it('should render navigation items when open', () => {
     render(<Sidebar />);
-    expect(screen.getByText('Home')).toBeInTheDocument();
-    expect(screen.getByText('Discover Skills')).toBeInTheDocument();
+    expect(screen.getByText('Discover')).toBeInTheDocument();
     expect(screen.getByText('Create Skill')).toBeInTheDocument();
   });
 
@@ -73,7 +72,7 @@ describe('Sidebar', () => {
     mockSidebarOpen = false;
     render(<Sidebar />);
     expect(screen.getByLabelText('Open sidebar')).toBeInTheDocument();
-    expect(screen.queryByText('Home')).not.toBeInTheDocument();
+    expect(screen.queryByText('Discover')).not.toBeInTheDocument();
   });
 
   it('should call setSidebarOpen(true) when open button is clicked', () => {
@@ -85,13 +84,13 @@ describe('Sidebar', () => {
 
   it('should link Home to /', () => {
     render(<Sidebar />);
-    const link = screen.getByText('Home').closest('a');
-    expect(link).toHaveAttribute('href', '/');
+    // Home link is removed - / now redirects to /skills
+    expect(screen.queryByText('Home')).not.toBeInTheDocument();
   });
 
-  it('should link Discover Skills to /skills', () => {
+  it('should link Discover to /skills', () => {
     render(<Sidebar />);
-    const link = screen.getByText('Discover Skills').closest('a');
+    const link = screen.getByText('Discover').closest('a');
     expect(link).toHaveAttribute('href', '/skills');
   });
 

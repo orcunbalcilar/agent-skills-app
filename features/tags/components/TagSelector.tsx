@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Star } from 'lucide-react';
 import { useTags, useCreateTag } from '../hooks/useTags';
 
 interface TagSelectorProps {
@@ -58,7 +59,7 @@ export function TagSelector({ selected, onChange, max = 10 }: Readonly<TagSelect
             className={`cursor-pointer ${tag.isSystem ? 'border-primary/50' : ''}`}
             onClick={() => toggleTag(tag.id)}
           >
-            {tag.isSystem && '⭐ '}
+            {tag.isSystem && <Star className="size-3 fill-current" />}
             {tag.name}
           </Badge>
         ))}

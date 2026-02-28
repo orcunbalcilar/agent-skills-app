@@ -1,4 +1,4 @@
-# Agent Skills
+# Skills
 
 A collaborative platform for creating, discovering, and managing reusable AI agent skills. Teams can publish skill specifications, collaborate through change requests and comments, and build on each other's work through forking — all with real-time notifications and versioned history.
 
@@ -77,6 +77,20 @@ Database migrations are applied automatically during deployment:
 - **Manual**: `pnpm db:deploy` runs `prisma migrate deploy`
 
 The seed script is guarded against production — it will refuse to run when `NODE_ENV=production`.
+
+### Performance: Region Co-location
+
+For optimal performance, **deploy your database in the same region as your Vercel deployment**. Cross-region latency (e.g., Vercel in US with a database in Frankfurt) adds 100–200ms per query roundtrip, severely degrading perceived performance.
+
+- **Vercel Functions default region**: `iad1` (US East) — change via `vercel.json` with `"regions": ["fra1"]` or in project settings
+- **Recommended**: Either move your database to the same region as Vercel, or set Vercel's function region to match your database (e.g., `fra1` for Frankfurt)
+- In `vercel.json`:
+
+  ```json
+  {
+    "regions": ["fra1"]
+  }
+  ```
 
 ## Tech Stack
 

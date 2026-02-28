@@ -66,10 +66,15 @@ export default function SkillsPage() {
       {/* Category filter chips */}
       <CategoryFilter selected={selectedTags} onChange={setSelectedTags} />
 
-      <div>
-        <p className="text-muted-foreground mb-2 text-sm">All tags:</p>
-        <TagSelector selected={selectedTags} onChange={setSelectedTags} max={10} />
-      </div>
+      {/* Tag selector (collapsible) */}
+      <details className="group">
+        <summary className="text-muted-foreground hover:text-foreground mb-2 cursor-pointer text-sm font-medium transition-colors">
+          All tags
+        </summary>
+        <div className="animate-fade-in">
+          <TagSelector selected={selectedTags} onChange={setSelectedTags} max={10} />
+        </div>
+      </details>
 
       {isLoading ? (
         <p className="text-muted-foreground">Loading...</p>
