@@ -116,19 +116,22 @@ test.describe('Skill PATCH validation', () => {
     test.skip(!skillId, 'No TEMPLATE skill available');
     // First get current name to restore later
     const getRes = await request.get(`/api/v1/skills/${skillId}`);
+    expect(getRes.status()).toBe(200);
     const current = await getRes.json();
     const originalName = current.data.name;
 
-    const res = await request.patch(`/api/v1/skills/${skillId}`, {
-      data: { name: 'valid-edit-name' },
-    });
-    expect(res.status()).toBe(200);
-    const body = await res.json();
-    expect(body.data.name).toBe('valid-edit-name');
-
-    // Restore original name
-    await request.patch(`/api/v1/skills/${skillId}`, {
-      data: { name: originalName },
-    });
+    try {
+      const res = await request.patch(`/api/v1/skills/${skillId}`, {
+        data: { name: 'valid-edit-name' },
+      });
+      expect(res.status()).toBe(200);
+      const body = await res.json();
+      expect(body.data.name).toBe('valid-edit-name');
+    } finally {
+      // Always restore original name
+      await request.patch(`/api/v1/skills/${skillId}`, {
+        data: { name: originalName },
+      });
+    }
   });
 });
