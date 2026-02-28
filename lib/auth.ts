@@ -1,6 +1,6 @@
-import NextAuth from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import NextAuth from "next-auth";
 import authConfig from "../auth.config";
 
 type Role = "ADMIN" | "USER";
@@ -35,7 +35,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const existing = await prisma.user.findUnique({
           where: { email: user.email },
         });
-        if (!existing) {
+        if (existing) {
+          await prisma.user.update({
+            where: { email: user.email },
+            data: {
+              githubId: String(account.providerAccountId),
+              avatarUrl: user.image ?? existing.avatarUrl,
+            },
+          });
+        } else {
           await prisma.user.create({
             data: {
               githubId: String(account.providerAccountId),

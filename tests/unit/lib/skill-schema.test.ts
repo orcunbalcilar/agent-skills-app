@@ -384,14 +384,16 @@ describe("validateSkillFolder", () => {
     expect(result.error).toContain("SKILL.md");
   });
 
-  it("should reject unsupported directories", () => {
+  it("should warn about non-standard directories", () => {
     const entries: SkillFolderEntry[] = [
       { path: "SKILL.md", content: makeSkillMd("my-skill", "test") },
       { path: "unsupported/file.txt", content: "nope" },
     ];
     const result = validateSkillFolder(entries);
-    expect(result.success).toBe(false);
-    expect(result.error).toContain("Unsupported directory");
+    expect(result.success).toBe(true);
+    expect(result.warnings).toBeDefined();
+    expect(result.warnings![0]).toContain("Non-standard directory");
+    expect(result.warnings![0]).toContain("unsupported");
   });
 
   it("should allow scripts/, references/, and assets/ directories", () => {

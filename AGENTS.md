@@ -48,3 +48,9 @@
 - `reader.cancel()` triggers the ReadableStream `cancel()` handler synchronously
 - `vi.fn(originalFn)` wraps the original while allowing `mockImplementation` overrides and `mockRestore()`
 - To test heartbeat/interval catch blocks: capture the callback via `setInterval` spy, cancel the stream, then invoke the captured callback manually
+- Non-standard skill directories (beyond scripts/, references/, assets/) produce warnings instead of hard errors — widely used skills may have extra dirs like rules/
+- Prisma seed scripts must guard against production with `NODE_ENV` check
+- Use `prisma migrate deploy` (not `prisma migrate dev`) in production/CI — it applies pending migrations non-interactively
+- Vercel deployments need a `vercel-build` script: `prisma generate && DATABASE_URL=$DIRECT_URL prisma migrate deploy && next build`
+- `dotenv-cli` uses `-e` flag (not `-f`) to specify env files — `-f` is silently ignored
+- Supabase PgBouncer (port 6543) hangs on `prisma migrate deploy` — use session mode (port 5432) via `DIRECT_URL` for migrations

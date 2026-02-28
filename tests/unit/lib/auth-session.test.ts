@@ -1,9 +1,10 @@
 // tests/unit/lib/auth-session.test.ts
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockFindUnique, mockCreate, capturedCallbacks } = vi.hoisted(() => ({
+const { mockFindUnique, mockCreate, mockUpdate, capturedCallbacks } = vi.hoisted(() => ({
   mockFindUnique: vi.fn(),
   mockCreate: vi.fn(),
+  mockUpdate: vi.fn(),
   capturedCallbacks: {} as Record<string, (...args: never[]) => unknown>,
 }));
 
@@ -12,6 +13,7 @@ vi.mock("@/lib/prisma", () => ({
     user: {
       findUnique: (...args: unknown[]) => mockFindUnique(...args),
       create: (...args: unknown[]) => mockCreate(...args),
+      update: (...args: unknown[]) => mockUpdate(...args),
     },
   },
 }));
@@ -140,16 +142,43 @@ describe("Auth callbacks", () => {
       });
     });
 
-    it("should not create user on github login when already existing", async () => {
-      mockFindUnique.mockResolvedValue({ id: "u1", email: "existing@example.com" });
+    it("should update existing user on github login with github info", async () => {
+      mockFindUnique.mockResolvedValue({ id: "u1", email: "existing@example.com", avatarUrl: null });
+      mockUpdate.mockResolvedValue({});
 
       const result = await signInCb({
-        user: { email: "existing@example.com", name: "Existing", image: null },
+        user: { email: "existing@example.com", name: "Existing", image: "https://img.com/new-avatar" },
         account: { provider: "github", providerAccountId: "123" },
       });
 
       expect(result).toBe(true);
       expect(mockCreate).not.toHaveBeenCalled();
+      expect(mockUpdate).toHaveBeenCalledWith({
+        where: { email: "existing@example.com" },
+        data: {
+          githubId: "123",
+          avatarUrl: "https://img.com/new-avatar",
+        },
+      });
+    });
+
+    it("should preserve existing avatarUrl when github image is null", async () => {
+      mockFindUnique.mockResolvedValue({ id: "u1", email: "existing@example.com", avatarUrl: "https://old.com/avatar" });
+      mockUpdate.mockResolvedValue({});
+
+      const result = await signInCb({
+        user: { email: "existing@example.com", name: "Existing", image: null },
+        account: { provider: "github", providerAccountId: "456" },
+      });
+
+      expect(result).toBe(true);
+      expect(mockUpdate).toHaveBeenCalledWith({
+        where: { email: "existing@example.com" },
+        data: {
+          githubId: "456",
+          avatarUrl: "https://old.com/avatar",
+        },
+      });
     });
 
     it("should skip creation for non-github providers", async () => {

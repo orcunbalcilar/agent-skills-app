@@ -128,15 +128,18 @@ function detectRootPrefix(entries: SkillFolderEntry[]): string {
   return allUnderOneDir ? topLevel + "/" : "";
 }
 
-function checkDirectories(relativePaths: string[]): string | null {
+function checkDirectories(relativePaths: string[]): string[] {
+  const warned = new Set<string>();
+  const warnings: string[] = [];
   for (const rp of relativePaths) {
     if (rp === "SKILL.md") continue;
     const parts = rp.split("/");
-    if (parts.length > 1 && !ALLOWED_DIRS.has(parts[0])) {
-      return `Unsupported directory "${parts[0]}". Allowed: scripts/, references/, assets/`;
+    if (parts.length > 1 && !ALLOWED_DIRS.has(parts[0]) && !warned.has(parts[0])) {
+      warned.add(parts[0]);
+      warnings.push(`Non-standard directory "${parts[0]}". Allowed by spec: scripts/, references/, assets/`);
     }
   }
-  return null;
+  return warnings;
 }
 
 /**
@@ -149,6 +152,7 @@ export function validateSkillFolder(entries: SkillFolderEntry[]): {
   success: boolean;
   data?: SkillSpec;
   files?: SkillFolderEntry[];
+  warnings?: string[];
   error?: string;
 } {
   if (entries.length === 0) {
@@ -182,14 +186,11 @@ export function validateSkillFolder(entries: SkillFolderEntry[]): {
     }
   }
 
-  // Validate that only allowed directories exist
+  // Check for non-standard directories (warn but allow)
   const relativePaths = entries.map((e) =>
     rootPrefix ? e.path.slice(rootPrefix.length) : e.path
   );
-  const dirError = checkDirectories(relativePaths);
-  if (dirError) {
-    return { success: false, error: dirError };
-  }
+  const warnings = checkDirectories(relativePaths);
 
   // Normalize entries to be relative to skill root
   const normalizedEntries = entries.map((e) => ({
@@ -197,5 +198,10 @@ export function validateSkillFolder(entries: SkillFolderEntry[]): {
     content: e.content,
   }));
 
-  return { success: true, data: parseResult.data, files: normalizedEntries };
+  return {
+    success: true,
+    data: parseResult.data,
+    files: normalizedEntries,
+    ...(warnings.length > 0 ? { warnings } : {}),
+  };
 }

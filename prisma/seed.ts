@@ -2,6 +2,11 @@
 import { PrismaClient, Role, SkillStatus, ChangeRequestStatus, NotificationType, ReactionEmoji } from "@prisma/client";
 import { subDays } from "date-fns";
 
+if (process.env.NODE_ENV === "production") {
+  console.error("Seed script must not run in production. Aborting.");
+  process.exit(1);
+}
+
 const prisma = new PrismaClient();
 
 async function main() {

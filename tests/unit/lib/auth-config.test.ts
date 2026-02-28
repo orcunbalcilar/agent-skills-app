@@ -28,6 +28,19 @@ describe("auth.config", () => {
     expect(hasGithub).toBe(true);
   });
 
+  it("should enable allowDangerousEmailAccountLinking on GitHub provider", async () => {
+    const config = (await import("../../../auth.config")).default;
+    const github = config.providers.find((p) => {
+      if (typeof p === "function") return false;
+      return p.id === "github" || p.name === "GitHub";
+    });
+    expect(github).toBeDefined();
+    if (github && typeof github !== "function") {
+      const options = (github as { options?: { allowDangerousEmailAccountLinking?: boolean } }).options;
+      expect(options?.allowDangerousEmailAccountLinking).toBe(true);
+    }
+  });
+
   // In test env (NODE_ENV=test), credentials provider is NOT added
   // because it only activates in NODE_ENV=development
   it("should not include credentials provider in test environment", async () => {
