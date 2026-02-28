@@ -4,6 +4,7 @@
 import { SkillCard } from "@/features/skills/components/SkillCard";
 import { GlobalStatsBanner } from "@/features/stats/components/GlobalStatsBanner";
 import { useSkills } from "@/features/skills/hooks/useSkills";
+import { Rocket, TrendingUp } from "lucide-react";
 
 export default function HomePage() {
   const { data: latest } = useSkills({ status: "RELEASED", sort: "newest", pageSize: 6 });
@@ -15,7 +16,7 @@ export default function HomePage() {
 
       <section className="animate-fade-in [animation-delay:0.1s]">
         <h2 className="text-xl font-semibold mb-5 flex items-center gap-2">
-          <span>🚀</span>
+          <Rocket className="size-5 text-primary" />
           <span>Latest Released</span>
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -27,7 +28,7 @@ export default function HomePage() {
 
       <section className="animate-fade-in [animation-delay:0.2s]">
         <h2 className="text-xl font-semibold mb-5 flex items-center gap-2">
-          <span>🔥</span>
+          <TrendingUp className="size-5 text-primary" />
           <span>Trending</span>
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

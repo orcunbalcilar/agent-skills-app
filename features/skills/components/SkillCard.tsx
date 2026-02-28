@@ -5,11 +5,31 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Download,
+  Eye,
+  GitFork,
+  Heart,
+  PartyPopper,
+  Rocket,
+  ThumbsDown,
+  ThumbsUp,
+  CircleHelp,
+  Laugh,
+  Users,
+} from "lucide-react";
 import type { SkillSummary } from "../types";
+import type { LucideIcon } from "lucide-react";
 
-const EMOJI_MAP: Record<string, string> = {
-  THUMBS_UP: "👍", THUMBS_DOWN: "👎", LAUGH: "😄", HOORAY: "🎉",
-  CONFUSED: "😕", HEART: "❤️", ROCKET: "🚀", EYES: "👀",
+const REACTION_ICONS: Record<string, LucideIcon> = {
+  THUMBS_UP: ThumbsUp,
+  THUMBS_DOWN: ThumbsDown,
+  LAUGH: Laugh,
+  HOORAY: PartyPopper,
+  CONFUSED: CircleHelp,
+  HEART: Heart,
+  ROCKET: Rocket,
+  EYES: Eye,
 };
 
 interface SkillCardProps {
@@ -37,7 +57,10 @@ export function SkillCard({ skill }: Readonly<SkillCardProps>) {
               {skill.status === "RELEASED" ? `v${skill.version}` : "template"}
             </Badge>
             {skill.forkedFromId && (
-              <Badge variant="outline" className="text-xs border-border/50">🍴 forked</Badge>
+              <Badge variant="outline" className="text-xs border-border/50 flex items-center gap-0.5">
+                <GitFork className="size-3" />
+                forked
+              </Badge>
             )}
           </div>
         </div>
@@ -71,17 +94,29 @@ export function SkillCard({ skill }: Readonly<SkillCardProps>) {
 
       <CardFooter className="pt-2 flex justify-between text-xs text-muted-foreground border-t border-border/30">
         <div className="flex gap-3">
-          <span aria-label="Downloads" className="flex items-center gap-0.5">⬇️ {skill.downloadCount}</span>
-          <span aria-label="Followers" className="flex items-center gap-0.5">👥 {skill._count?.followers ?? 0}</span>
-          <span aria-label="Forks" className="flex items-center gap-0.5">🍴 {skill.forkCount}</span>
+          <span aria-label="Downloads" className="flex items-center gap-1">
+            <Download className="size-3.5" />
+            {skill.downloadCount}
+          </span>
+          <span aria-label="Followers" className="flex items-center gap-1">
+            <Users className="size-3.5" />
+            {skill._count?.followers ?? 0}
+          </span>
+          <span aria-label="Forks" className="flex items-center gap-1">
+            <GitFork className="size-3.5" />
+            {skill.forkCount}
+          </span>
         </div>
-        <div className="flex gap-1">
-          {topReactions.map(([emoji, count]) => (
-            <span key={emoji} className="flex items-center gap-0.5">
-              {EMOJI_MAP[emoji] ?? emoji}
-              <span>{count}</span>
-            </span>
-          ))}
+        <div className="flex gap-1.5">
+          {topReactions.map(([emoji, count]) => {
+            const Icon = REACTION_ICONS[emoji];
+            return (
+              <span key={emoji} className="flex items-center gap-0.5">
+                {Icon ? <Icon className="size-3.5" /> : emoji}
+                <span>{count}</span>
+              </span>
+            );
+          })}
         </div>
       </CardFooter>
     </Card>

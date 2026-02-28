@@ -6,15 +6,17 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useUIStore } from "@/stores/ui-store";
 import { Separator } from "@/components/ui/separator";
+import { ChevronLeft, Home, PanelLeft, Search, Settings, Sparkles } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
-const NAV_ITEMS = [
-  { href: "/", label: "Home", icon: "🏠" },
-  { href: "/skills", label: "Discover Skills", icon: "🔍" },
-  { href: "/skills/new", label: "Create Skill", icon: "✨" },
+const NAV_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: "/", label: "Home", icon: Home },
+  { href: "/skills", label: "Discover Skills", icon: Search },
+  { href: "/skills/new", label: "Create Skill", icon: Sparkles },
 ];
 
-const ADMIN_ITEMS = [
-  { href: "/admin", label: "Admin Panel", icon: "⚙️" },
+const ADMIN_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: "/admin", label: "Admin Panel", icon: Settings },
 ];
 
 interface SidebarProps {
@@ -36,7 +38,7 @@ export function Sidebar({ isAdmin }: Readonly<SidebarProps>) {
           aria-label="Open sidebar"
           className="rounded-full h-8 w-8 p-0"
         >
-          →
+          <PanelLeft className="size-4" />
         </Button>
       </aside>
     );
@@ -52,7 +54,7 @@ export function Sidebar({ isAdmin }: Readonly<SidebarProps>) {
           aria-label="Close sidebar"
           className="rounded-full h-8 w-8 p-0"
         >
-          ←
+          <ChevronLeft className="size-4" />
         </Button>
       </div>
 
@@ -69,7 +71,7 @@ export function Sidebar({ isAdmin }: Readonly<SidebarProps>) {
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                 ].join(" ")}
               >
-                <span aria-hidden className="text-base">{item.icon}</span>
+                <item.icon aria-hidden className="size-4 shrink-0" />
                 {item.label}
               </Link>
             </li>
@@ -91,7 +93,7 @@ export function Sidebar({ isAdmin }: Readonly<SidebarProps>) {
                         : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                     ].join(" ")}
                   >
-                    <span aria-hidden className="text-base">{item.icon}</span>
+                    <item.icon aria-hidden className="size-4 shrink-0" />
                     {item.label}
                   </Link>
                 </li>

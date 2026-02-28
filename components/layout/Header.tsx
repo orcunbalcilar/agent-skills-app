@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useNotificationStore } from "@/stores/notification-store";
 import { useUIStore } from "@/stores/ui-store";
+import { Bell, LogOut, Moon, Settings, Sun, User } from "lucide-react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -37,7 +38,7 @@ export function Header({ user }: Readonly<HeaderProps>) {
   const [search, setSearch] = useState("");
 
   const handleSearch = useCallback(
-    (e: React.FormEvent) => {
+    (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       if (search.trim()) {
         router.push(`/skills?q=${encodeURIComponent(search.trim())}`);
@@ -78,7 +79,7 @@ export function Header({ user }: Readonly<HeaderProps>) {
           aria-label="Toggle dark/light mode"
           className="rounded-full h-8 w-8 p-0"
         >
-          {theme === "dark" ? "☀️" : "🌙"}
+          {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
         </Button>
 
         {user ? (
@@ -105,20 +106,34 @@ export function Header({ user }: Readonly<HeaderProps>) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
-                <Link href="/profile">Profile</Link>
+                <Link href="/profile" className="flex items-center gap-2">
+                  <User className="size-4" />
+                  Profile
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/notifications">Notifications</Link>
+                <Link href="/notifications" className="flex items-center gap-2">
+                  <Bell className="size-4" />
+                  Notifications
+                  {unreadCount > 0 && (
+                    <Badge variant="destructive" className="ml-auto h-5 min-w-5 p-0 flex items-center justify-center text-[10px]">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </Badge>
+                  )}
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/notifications/preferences">
-                  Notification Preferences
+                <Link href="/notifications/preferences" className="flex items-center gap-2">
+                  <Settings className="size-4" />
+                  Preferences
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => signOut({ callbackUrl: "/auth/signin" })}
+                className="flex items-center gap-2"
               >
+                <LogOut className="size-4" />
                 Sign out
               </DropdownMenuItem>
             </DropdownMenuContent>

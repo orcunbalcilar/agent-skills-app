@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Bell } from "lucide-react";
 import { useNotificationStore } from "@/stores/notification-store";
 import { useNotifications } from "../hooks/useNotifications";
 
@@ -30,7 +31,7 @@ export function NotificationBell() {
   return (
     <Button variant="ghost" size="sm" asChild className="relative">
       <Link href="/notifications">
-        <span aria-label="Notifications">🔔</span>
+        <Bell className="size-4" aria-label="Notifications" />
         {unreadCount > 0 && (
           <Badge
             variant="destructive"

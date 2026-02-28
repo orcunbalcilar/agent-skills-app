@@ -17,9 +17,10 @@ export default async function MainGroupLayout({
     : undefined;
   const isAdmin =
     (session?.user as { role?: string } | undefined)?.role === "ADMIN";
+  const userId = (session?.user as { id?: string } | undefined)?.id;
 
   return (
-    <MainLayout user={user} isAdmin={isAdmin}>
+    <MainLayout user={user} userId={userId} isAdmin={isAdmin}>
       {children}
     </MainLayout>
   );

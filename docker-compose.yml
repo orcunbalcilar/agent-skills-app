@@ -1,3 +1,5 @@
+# Local development only — production uses Supabase.
+# Usage: docker compose up -d
 services:
   postgres:
     image: postgres:17-alpine

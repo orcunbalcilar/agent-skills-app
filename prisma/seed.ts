@@ -1,6 +1,12 @@
 // prisma/seed.ts
+//
+// Development-only seed script. System tags are created via a database
+// migration (20260228000000_seed_system_tags) so they exist in all
+// environments. This file only creates sample data for local development.
+//
 import { PrismaClient, Role, SkillStatus, ChangeRequestStatus, NotificationType, ReactionEmoji } from "@prisma/client";
 import { subDays } from "date-fns";
+import { SYSTEM_TAG_NAMES } from "../lib/constants";
 
 if (process.env.NODE_ENV === "production") {
   console.error("Seed script must not run in production. Aborting.");
@@ -10,17 +16,11 @@ if (process.env.NODE_ENV === "production") {
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("Seeding database...");
+  console.log("Seeding development database...");
 
-  // ── Tags ────────────────────────────────────────────────────────────────────
-  const systemTagNames = [
-    "ai", "devops", "frontend", "backend", "security",
-    "testing", "database", "cloud", "mobile", "data-science",
-    "java", ".net", "nodejs", "web-development",
-    "documentation", "python", "go", "rust",
-  ];
+  // ── Tags (upsert to ensure they exist locally) ─────────────────────────────
   const tagRecords = await Promise.all(
-    systemTagNames.map((name) =>
+    SYSTEM_TAG_NAMES.map((name) =>
       prisma.tag.upsert({
         where: { name },
         update: {},
