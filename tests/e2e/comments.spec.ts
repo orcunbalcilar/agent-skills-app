@@ -6,11 +6,13 @@ test.describe('Comments', () => {
     await page.goto('/skills');
     await page.locator("main a[href^='/skills/']").first().click();
 
+    const commentText = `E2E test comment ${Date.now()}`;
     // The comment textarea uses placeholder "Add a comment..."
-    await page.getByPlaceholder(/add a comment/i).fill('E2E test comment');
+    await page.getByPlaceholder(/add a comment/i).fill(commentText);
     await page.getByRole('button', { name: /^comment$/i }).click();
 
-    await expect(page.getByText('E2E test comment')).toBeVisible();
+    // Wait for the new comment to appear in the list
+    await expect(page.getByText(commentText)).toBeVisible({ timeout: 10000 });
   });
 
   test('should edit own comment', async ({ page }) => {

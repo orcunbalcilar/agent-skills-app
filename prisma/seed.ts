@@ -4,6 +4,7 @@
 // migration (20260228000000_seed_system_tags) so they exist in all
 // environments. This file only creates sample data for local development.
 //
+import 'dotenv/config';
 import {
   PrismaClient,
   Role,
@@ -12,6 +13,7 @@ import {
   NotificationType,
   ReactionEmoji,
 } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 import { subDays } from 'date-fns';
 import { SYSTEM_TAG_NAMES } from '../lib/constants';
 
@@ -20,21 +22,24 @@ if (process.env.NODE_ENV === 'production') {
   process.exit(1);
 }
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL!, max: 5 }),
+});
 
 async function main() {
   console.log('Seeding development database...');
 
   // ── Tags (upsert to ensure they exist locally) ─────────────────────────────
-  const tagRecords = await Promise.all(
-    SYSTEM_TAG_NAMES.map((name) =>
-      prisma.tag.upsert({
+  const tagRecords = [];
+  for (const name of SYSTEM_TAG_NAMES) {
+    tagRecords.push(
+      await prisma.tag.upsert({
         where: { name },
         update: {},
         create: { name, isSystem: true },
       }),
-    ),
-  );
+    );
+  }
   const tagByName = Object.fromEntries(tagRecords.map((t) => [t.name, t]));
 
   // ── Users ───────────────────────────────────────────────────────────────────
@@ -94,48 +99,51 @@ async function main() {
       name: 'data-pipeline-builder',
       description: 'Designs ETL pipelines for data engineering tasks.',
       owner: regularUser,
-      tags: ['data', 'python'],
+      tags: ['data-science', 'python'],
     },
   ];
 
-  const releasedSkills = await Promise.all(
-    skillDefs.map(async (def) => {
-      const skill = await prisma.skill.create({
-        data: {
+  const releasedSkills: Array<{ id: string }> = [];
+  for (const def of skillDefs) {
+    const skill = await prisma.skill.create({
+      data: {
+        name: def.name,
+        description: def.description,
+        spec: {
           name: def.name,
           description: def.description,
-          spec: {
-            name: def.name,
-            description: def.description,
-            license: 'MIT',
-            compatibility: ['gpt-4', 'claude-3'],
-            metadata: { author: def.owner.name },
-            'allowed-tools': ['read_file', 'write_file'],
-            body: `You are a ${def.name} skill. Help users with ${def.description}`,
-          },
-          status: SkillStatus.RELEASED,
-          version: 1,
-          releasedAt: new Date(),
-          downloadCount: Math.floor(Math.random() * 100),
-          forkCount: 0,
+          license: 'MIT',
+          compatibility: 'gpt-4, claude-3',
+          metadata: { author: def.owner.name },
+          'allowed-tools': 'read_file, write_file',
+          body: `You are a ${def.name} skill. Help users with ${def.description}`,
         },
+        files: [
+          {
+            path: 'SKILL.md',
+            content: `---\nname: ${def.name}\ndescription: ${def.description}\n---\nYou are a ${def.name} skill.`,
+          },
+        ],
+        status: SkillStatus.RELEASED,
+        version: 1,
+        releasedAt: new Date(),
+        downloadCount: (skillDefs.length - skillDefs.indexOf(def)) * 20,
+        forkCount: 0,
+      },
+    });
+
+    await prisma.skillOwner.create({
+      data: { skillId: skill.id, userId: def.owner.id },
+    });
+
+    for (const tagName of def.tags) {
+      await prisma.skillTag.create({
+        data: { skillId: skill.id, tagId: tagByName[tagName].id },
       });
+    }
 
-      await prisma.skillOwner.create({
-        data: { skillId: skill.id, userId: def.owner.id },
-      });
-
-      await Promise.all(
-        def.tags.map((tagName) =>
-          prisma.skillTag.create({
-            data: { skillId: skill.id, tagId: tagByName[tagName].id },
-          }),
-        ),
-      );
-
-      return skill;
-    }),
-  );
+    releasedSkills.push(skill);
+  }
 
   // ── Templates ───────────────────────────────────────────────────────────────
   const templateDefs = [
@@ -153,28 +161,29 @@ async function main() {
     },
   ];
 
-  await Promise.all(
-    templateDefs.map(async (def) => {
-      const skill = await prisma.skill.create({
-        data: {
-          name: def.name,
-          description: def.description,
-          spec: { name: def.name, description: def.description, body: 'Draft' },
-          status: SkillStatus.TEMPLATE,
-          version: 1,
-        },
+  for (const def of templateDefs) {
+    const skill = await prisma.skill.create({
+      data: {
+        name: def.name,
+        description: def.description,
+        spec: { name: def.name, description: def.description, body: 'Draft' },
+        files: [
+          {
+            path: 'SKILL.md',
+            content: `---\nname: ${def.name}\ndescription: ${def.description}\n---\nDraft`,
+          },
+        ],
+        status: SkillStatus.TEMPLATE,
+        version: 1,
+      },
+    });
+    await prisma.skillOwner.create({ data: { skillId: skill.id, userId: def.owner.id } });
+    for (const tagName of def.tags) {
+      await prisma.skillTag.create({
+        data: { skillId: skill.id, tagId: tagByName[tagName].id },
       });
-      await prisma.skillOwner.create({ data: { skillId: skill.id, userId: def.owner.id } });
-      await Promise.all(
-        def.tags.map((tagName) =>
-          prisma.skillTag.create({
-            data: { skillId: skill.id, tagId: tagByName[tagName].id },
-          }),
-        ),
-      );
-      return skill;
-    }),
-  );
+    }
+  }
 
   // ── Followers ───────────────────────────────────────────────────────────────
   const [skill1, skill2, skill3] = releasedSkills;
@@ -211,17 +220,18 @@ async function main() {
     'Great starting point for automation.',
   ];
 
-  const comments = await Promise.all(
-    commentTexts.map((content, i) =>
-      prisma.comment.create({
+  const comments = [];
+  for (const [i, content] of commentTexts.entries()) {
+    comments.push(
+      await prisma.comment.create({
         data: {
           skillId: releasedSkills[i % releasedSkills.length].id,
           authorId: i % 2 === 0 ? adminUser.id : regularUser.id,
           content,
         },
       }),
-    ),
-  );
+    );
+  }
 
   // ── Reactions ────────────────────────────────────────────────────────────────
   const reactionEmojis = [
@@ -231,26 +241,24 @@ async function main() {
     ReactionEmoji.EYES,
   ];
 
-  await Promise.all([
-    prisma.skillReaction.createMany({
-      data: [
-        { skillId: skill1.id, userId: adminUser.id, emoji: ReactionEmoji.THUMBS_UP },
-        { skillId: skill1.id, userId: regularUser.id, emoji: ReactionEmoji.HEART },
-        { skillId: skill2.id, userId: adminUser.id, emoji: ReactionEmoji.ROCKET },
-        { skillId: skill3.id, userId: regularUser.id, emoji: ReactionEmoji.EYES },
-      ],
-      skipDuplicates: true,
-    }),
-    prisma.commentReaction.createMany({
-      data: [
-        { commentId: comments[0].id, userId: regularUser.id, emoji: ReactionEmoji.THUMBS_UP },
-        { commentId: comments[1].id, userId: adminUser.id, emoji: ReactionEmoji.LAUGH },
-        { commentId: comments[2].id, userId: regularUser.id, emoji: reactionEmojis[2] },
-        { commentId: comments[3].id, userId: adminUser.id, emoji: ReactionEmoji.HEART },
-      ],
-      skipDuplicates: true,
-    }),
-  ]);
+  await prisma.skillReaction.createMany({
+    data: [
+      { skillId: skill1.id, userId: adminUser.id, emoji: ReactionEmoji.THUMBS_UP },
+      { skillId: skill1.id, userId: regularUser.id, emoji: ReactionEmoji.HEART },
+      { skillId: skill2.id, userId: adminUser.id, emoji: ReactionEmoji.ROCKET },
+      { skillId: skill3.id, userId: regularUser.id, emoji: ReactionEmoji.EYES },
+    ],
+    skipDuplicates: true,
+  });
+  await prisma.commentReaction.createMany({
+    data: [
+      { commentId: comments[0].id, userId: regularUser.id, emoji: ReactionEmoji.THUMBS_UP },
+      { commentId: comments[1].id, userId: adminUser.id, emoji: ReactionEmoji.LAUGH },
+      { commentId: comments[2].id, userId: regularUser.id, emoji: reactionEmojis[2] },
+      { commentId: comments[3].id, userId: adminUser.id, emoji: ReactionEmoji.HEART },
+    ],
+    skipDuplicates: true,
+  });
 
   // ── Change Requests ──────────────────────────────────────────────────────────
   const openCR = await prisma.changeRequest.create({
@@ -324,11 +332,10 @@ async function main() {
   console.log('Seeding complete.');
 }
 
-try {
-  await main();
-} catch (e) {
-  console.error(e);
-  process.exit(1);
-} finally {
-  await prisma.$disconnect();
-}
+// eslint-disable-next-line unicorn/prefer-top-level-await -- tsx CJS mode does not support top-level await
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(() => prisma.$disconnect());

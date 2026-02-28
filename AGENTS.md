@@ -4,7 +4,7 @@
 
 - Always use official docs, use context7 tools/skills
 - Always prefer the practices of any library or framework, no manual workaround just to develop or solve anything.
-- 100% unit and e2e test code coverage is required. Never ever skip this crucial success factor in any work.
+- Comprehensive unit and e2e test code coverage is required (100% statements/lines, 99% branches, 98% functions as enforced in vitest.config.ts). Never ever skip this crucial success factor in any work.
 - Always cover all changes by tests and validate them all by running. Nothing is worse than slop code.
 - Use skills in developing the features. They will give you the relevant best practices of the framework or library
 - Always make detailed research on the web before taking any design or implementation decision. You can use the web to find the best practices, patterns, and solutions for the problem at hand.
@@ -72,3 +72,9 @@
 - Supabase PgBouncer (port 6543) hangs on `prisma migrate deploy` — use session mode (port 5432) via `DIRECT_URL` for migrations
 - PATCH/PUT endpoints must mirror the same validation as their POST counterpart — missing validation on update routes is a common security gap that allows invalid data into the DB
 - When adding validation to an update endpoint, mock skill objects in tests must include all fields used by validation fallbacks (e.g., `name`, `description` on the Prisma result)
+- `PrismaPg` adapter with default config creates unbounded connection pools — always set `max` (e.g., `max: 10`) to prevent exceeding PostgreSQL `max_connections` (default 100), especially during parallel e2e test runs
+- Seed scripts using `Promise.all` for many DB operations can exhaust connections — use sequential `for...of` loops instead
+- E2e tests that create/delete data must use API `beforeAll`/`afterAll` to provision and clean up their own test data, never rely on seed data that other parallel tests might mutate
+- E2e rate-limit tests need `Promise.all` for concurrent requests (serial `await` may not trigger the rate window) plus a 1.1s delay to reset the rate-limit window from prior runs
+- Playwright `getByRole('button', { name: /delete/i })` strict mode fails when multiple buttons match — use `{ exact: true }` and/or `.first()` to disambiguate
+- `test.describe.configure({ mode: 'serial' })` ensures `beforeAll`→test→`afterAll` ordering within a describe block when using `test.beforeAll` with shared state

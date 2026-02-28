@@ -72,14 +72,33 @@ test.describe('Skill editing', () => {
 });
 
 test.describe('Skill PATCH validation', () => {
+  // Run serially so all tests in this block share the same worker and skill
+  test.describe.configure({ mode: 'serial' });
+
   let skillId: string;
+  const uniqueName = `e2e-patch-${Date.now()}`;
 
   test.beforeAll(async ({ request }) => {
-    // Find or use the first available TEMPLATE skill
-    const res = await request.get('/api/v1/skills?status=TEMPLATE');
+    // Create a dedicated TEMPLATE skill for PATCH validation tests
+    // so we don't depend on seed data that other parallel tests might mutate
+    const res = await request.post('/api/v1/skills', {
+      data: {
+        name: uniqueName,
+        description: 'Skill created for PATCH validation tests',
+        spec: { name: uniqueName, description: 'Skill created for PATCH validation tests', body: 'temp' },
+        files: [{ path: 'SKILL.md', content: `---\nname: ${uniqueName}\n---\n` }],
+      },
+    });
     const body = await res.json();
-    if (body.data?.length > 0) {
-      skillId = body.data[0].id;
+    if (body.data?.id) {
+      skillId = body.data.id;
+    }
+  });
+
+  test.afterAll(async ({ request }) => {
+    // Clean up the test skill
+    if (skillId) {
+      await request.delete(`/api/v1/skills/${skillId}`);
     }
   });
 

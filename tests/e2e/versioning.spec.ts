@@ -5,7 +5,9 @@ test.describe('Skill versioning', () => {
   test('should show History tab on skill detail page', async ({ page }) => {
     await page.goto('/skills');
     await page.locator("main a[href^='/skills/']").first().click();
-    await page.waitForTimeout(500);
+    // Wait for skill detail page to fully load including tabs
+    await page.waitForURL(/\/skills\/[^/]+$/);
+    await page.waitForSelector('role=tab', { timeout: 10_000 });
     await expect(page.getByRole('tab', { name: /history/i })).toBeVisible();
   });
 

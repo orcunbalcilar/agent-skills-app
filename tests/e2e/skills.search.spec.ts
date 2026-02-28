@@ -38,11 +38,13 @@ test.describe('Skill search and filtering', () => {
 
   test('should paginate results', async ({ page }) => {
     await page.goto('/skills');
-    const nextBtn = page.getByRole('button', { name: /next/i });
+    // Pagination "Next page" button is inside the main content area
+    const nextBtn = page.locator('main').getByRole('button', { name: 'Next page' });
     if (await nextBtn.isVisible()) {
       await nextBtn.click();
       await page.waitForTimeout(500);
-      await expect(page.getByText(/page/i)).toBeVisible();
+      // The current page button should have aria-current="page"
+      await expect(page.locator('main').locator('[aria-current="page"]')).toBeVisible();
     }
   });
 });

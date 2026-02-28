@@ -39,7 +39,10 @@ export function SkillSpecViewer({ spec, files }: Readonly<SkillSpecViewerProps>)
         <div>
           <h3 className="text-muted-foreground mb-1 text-sm font-semibold">Compatibility</h3>
           <div className="flex flex-wrap gap-1">
-            {s.compatibility.split(',').map((c) => (
+            {(Array.isArray(s.compatibility)
+              ? s.compatibility
+              : s.compatibility.split(',')
+            ).map((c) => (
               <Badge key={c.trim()} variant="secondary">
                 {c.trim()}
               </Badge>
@@ -52,7 +55,10 @@ export function SkillSpecViewer({ spec, files }: Readonly<SkillSpecViewerProps>)
         <div>
           <h3 className="text-muted-foreground mb-1 text-sm font-semibold">Allowed Tools</h3>
           <div className="flex flex-wrap gap-1">
-            {s['allowed-tools'].split(',').map((t) => (
+            {(Array.isArray(s['allowed-tools'])
+              ? s['allowed-tools']
+              : s['allowed-tools'].split(',')
+            ).map((t) => (
               <Badge key={t.trim()} variant="outline" className="font-mono text-xs">
                 {t.trim()}
               </Badge>
