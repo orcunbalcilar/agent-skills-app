@@ -137,6 +137,7 @@ describe("Header", () => {
     mockUnreadCount = 0;
     render(<Header user={{ name: "Alice", email: "a@b.com", image: null }} />);
     expect(screen.queryByText("99+")).not.toBeInTheDocument();
+    expect(screen.queryByText(/^\d+$/)).not.toBeInTheDocument();
   });
 
   it("should render dropdown menu items with user", () => {
@@ -183,7 +184,7 @@ describe("Header", () => {
   it("should render dark mode sun icon", () => {
     mockTheme = "dark";
     render(<Header />);
-    // Sun icon is rendered in dark mode
     expect(screen.getByLabelText("Toggle dark/light mode")).toBeInTheDocument();
+    expect(screen.getByTestId("icon-sun")).toBeInTheDocument();
   });
 });

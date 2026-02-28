@@ -104,13 +104,15 @@ export function NotificationList() {
 
       <div className="space-y-2">
         {notifications.map((n) => {
-          const payload = n.payload;
+          const payload: Record<string, unknown> = n.payload ?? {};
           const config = TYPE_MAP[n.type] ?? { icon: BookOpen, label: n.type, color: "text-muted-foreground" };
           const Icon = config.icon;
-          const actorInitial = ((payload.actorName as string) ?? "?")[0]?.toUpperCase();
-          const timeAgo = formatDistanceToNow(new Date(n.createdAt), { addSuffix: true });
-          const skillId = payload.skillId as string | undefined;
-          const skillName = payload.skillName as string | undefined;
+          const rawActor = typeof payload.actorName === "string" ? payload.actorName : "";
+          const actorInitial = (rawActor || "?")[0].toUpperCase();
+          const date = new Date(n.createdAt);
+          const timeAgo = Number.isNaN(date.getTime()) ? "unknown" : formatDistanceToNow(date, { addSuffix: true });
+          const skillId = payload?.skillId as string | undefined;
+          const skillName = payload?.skillName as string | undefined;
 
           return (
             <Card

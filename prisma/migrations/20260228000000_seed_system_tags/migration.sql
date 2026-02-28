@@ -1,4 +1,4 @@
--- Seed built-in system tags (idempotent: skips existing names)
+-- Seed built-in system tags (idempotent: ON CONFLICT (name) DO UPDATE SET "isSystem" = true, upserting existing rows)
 INSERT INTO "Tag" (id, name, "isSystem", "createdAt") VALUES
   (gen_random_uuid(), 'ai', true, NOW()),
   (gen_random_uuid(), 'devops', true, NOW()),

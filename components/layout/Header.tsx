@@ -79,7 +79,7 @@ export function Header({ user }: Readonly<HeaderProps>) {
           aria-label="Toggle dark/light mode"
           className="rounded-full h-8 w-8 p-0"
         >
-          {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+          {theme === "dark" ? <Sun className="size-4" data-testid="icon-sun" /> : <Moon className="size-4" data-testid="icon-moon" />}
         </Button>
 
         {user ? (

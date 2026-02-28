@@ -283,8 +283,10 @@ describe("NotificationList", () => {
       meta: { page: 1, pageSize: 20, total: 40, totalPages: 2 },
     };
     render(<NotificationList />);
+    expect(screen.getByText("Page 1 of 2")).toBeInTheDocument();
     fireEvent.click(screen.getByText("Page 1 of 2"));
-    // Pagination change triggers re-render with new page
+    // After click, page state updates to 2 and mock Pagination renders new text
+    expect(screen.getByText("Page 2 of 2")).toBeInTheDocument();
   });
 
   it("should handle missing actorName gracefully with fallback ?", () => {

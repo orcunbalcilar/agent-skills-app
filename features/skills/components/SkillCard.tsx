@@ -32,6 +32,21 @@ const REACTION_ICONS: Record<string, LucideIcon> = {
   EYES: Eye,
 };
 
+const FALLBACK_EMOJI_MAP: Record<string, string> = {
+  THUMBS_UP: "\uD83D\uDC4D",
+  THUMBS_DOWN: "\uD83D\uDC4E",
+  LAUGH: "\uD83D\uDE04",
+  HOORAY: "\uD83C\uDF89",
+  CONFUSED: "\uD83D\uDE15",
+  HEART: "\u2764\uFE0F",
+  ROCKET: "\uD83D\uDE80",
+  EYES: "\uD83D\uDC40",
+};
+
+function getEmojiForReaction(key: string): string {
+  return FALLBACK_EMOJI_MAP[key] ?? key;
+}
+
 interface SkillCardProps {
   skill: SkillSummary;
 }
@@ -112,7 +127,7 @@ export function SkillCard({ skill }: Readonly<SkillCardProps>) {
             const Icon = REACTION_ICONS[emoji];
             return (
               <span key={emoji} className="flex items-center gap-0.5">
-                {Icon ? <Icon className="size-3.5" /> : emoji}
+                {Icon ? <Icon className="size-3.5" /> : getEmojiForReaction(emoji)}
                 <span>{count}</span>
               </span>
             );
