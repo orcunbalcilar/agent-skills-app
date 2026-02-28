@@ -59,7 +59,7 @@ export function TagSelector({ selected, onChange, max = 10 }: Readonly<TagSelect
             className={`cursor-pointer ${tag.isSystem ? 'border-primary/50' : ''}`}
             onClick={() => toggleTag(tag.id)}
           >
-            {tag.isSystem && <Star className="size-3 fill-current" />}
+            {tag.isSystem && <Star className="mr-1 size-3 fill-current" />}
             {tag.name}
           </Badge>
         ))}

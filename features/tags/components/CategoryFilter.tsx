@@ -38,7 +38,16 @@ export function CategoryFilter({ selected, onChange }: Readonly<CategoryFilterPr
                 'cursor-pointer gap-1.5 px-3 py-1.5 text-sm transition-all',
                 isSelected ? 'shadow-sm' : 'hover:bg-accent hover:text-accent-foreground',
               ].join(' ')}
+              role="button"
+              tabIndex={0}
+              aria-pressed={isSelected}
               onClick={() => toggleTag(tag.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  toggleTag(tag.id);
+                }
+              }}
             >
               <Star className={`size-3 ${isSelected ? 'fill-current' : ''}`} />
               {tag.name}

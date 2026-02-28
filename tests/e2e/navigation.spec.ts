@@ -48,9 +48,8 @@ test.describe('Navigation and branding', () => {
     await page.waitForTimeout(500);
     // If a file tree is visible, it should use SVG icons (not emoji)
     const fileTree = page.locator('.min-w-48');
-    if (await fileTree.isVisible()) {
-      const svgCount = await fileTree.locator('svg').count();
-      expect(svgCount).toBeGreaterThan(0);
-    }
+    await expect(fileTree).toBeVisible();
+    const svgCount = await fileTree.locator('svg').count();
+    expect(svgCount).toBeGreaterThan(0);
   });
 });

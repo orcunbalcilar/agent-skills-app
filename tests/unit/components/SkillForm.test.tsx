@@ -23,6 +23,7 @@ vi.mock('@/features/tags/components/TagSelector', () => ({
     React.createElement(
       'div',
       { 'data-testid': 'tag-selector' },
+      React.createElement('span', { 'data-testid': 'selected-tags' }, selected.join(',')),
       React.createElement(
         'button',
         { type: 'button', onClick: () => onChange([...selected, 'new-tag']) },
@@ -61,9 +62,9 @@ vi.mock('@/features/skills/components/SkillCodeEditor', () => ({
     ),
 }));
 
-const mockCreateSkill = { mutateAsync: vi.fn(), isPending: false };
-const mockUpdateSkill = { mutateAsync: vi.fn(), isPending: false };
-const mockReleaseSkill = { mutateAsync: vi.fn(), isPending: false };
+let mockCreateSkill = { mutateAsync: vi.fn(), isPending: false };
+let mockUpdateSkill = { mutateAsync: vi.fn(), isPending: false };
+let mockReleaseSkill = { mutateAsync: vi.fn(), isPending: false };
 
 vi.mock('@/features/skills/hooks/useSkillMutations', () => ({
   useCreateSkill: () => mockCreateSkill,
@@ -106,6 +107,9 @@ describe('SkillForm', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockCreateSkill = { mutateAsync: vi.fn(), isPending: false };
+    mockUpdateSkill = { mutateAsync: vi.fn(), isPending: false };
+    mockReleaseSkill = { mutateAsync: vi.fn(), isPending: false };
     fetchSpy = vi
       .spyOn(globalThis, 'fetch')
       .mockResolvedValue(new Response(JSON.stringify({ data: null }), { status: 200 }));
@@ -549,23 +553,22 @@ describe('SkillForm', () => {
   it('should show initial tags from initialData', () => {
     render(<SkillForm mode="edit" initialData={editData} />);
     expect(screen.getByTestId('tag-selector')).toBeInTheDocument();
+    expect(screen.getByTestId('selected-tags')).toHaveTextContent('t1');
   });
 
   it('should show Saving... when create is pending', () => {
-    Object.assign(mockCreateSkill, { isPending: true });
+    mockCreateSkill.isPending = true;
     render(<SkillForm mode="create" />);
     expect(screen.getByText('Saving...')).toBeInTheDocument();
-    Object.assign(mockCreateSkill, { isPending: false });
   });
 
   it('should show Releasing... when release is pending', async () => {
-    Object.assign(mockReleaseSkill, { isPending: true });
+    mockReleaseSkill.isPending = true;
     render(<SkillForm mode="edit" initialData={editData} />);
     fireEvent.click(screen.getByRole('button', { name: 'Release' }));
     await waitFor(() => {
       expect(screen.getByText('Releasing...')).toBeInTheDocument();
     });
-    Object.assign(mockReleaseSkill, { isPending: false });
   });
 
   it('should handle upload response without files', async () => {

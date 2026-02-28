@@ -129,9 +129,13 @@ describe('POST /api/v1/skills/[id]/fork', () => {
     const req = new NextRequest('http://localhost/api/v1/skills/s1/fork', { method: 'POST' });
     await POST(req, { params: Promise.resolve({ id: 's1' }) });
 
-    // Verify the transaction was called with files included
-    expect(prisma.$transaction).toHaveBeenCalledWith(
-      expect.arrayContaining([expect.objectContaining({})]),
+    // Verify prisma.skill.create was called with files from the parent
+    expect(prisma.skill.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          files: parentFiles,
+        }),
+      }),
     );
   });
 

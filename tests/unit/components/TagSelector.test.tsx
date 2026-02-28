@@ -98,7 +98,9 @@ describe('TagSelector', () => {
       expect(mockCreateTag.mutateAsync).toHaveBeenCalledWith('new-tag');
     });
     // onChange should NOT be called because the tag is already selected
-    expect(onChange).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(onChange).not.toHaveBeenCalled();
+    });
   });
 
   it('should disable Add button when at max', () => {
