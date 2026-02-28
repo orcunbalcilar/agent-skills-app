@@ -1,9 +1,9 @@
 // app/api/v1/skills/[id]/route.ts
 
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { checkLimit, getIp, requireAuth } from "@/lib/api-helpers";
-import type { Prisma } from "@prisma/client";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { checkLimit, getIp, requireAuth } from '@/lib/api-helpers';
+import type { Prisma } from '@prisma/client';
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -13,7 +13,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 
   try {
     const { id } = await params;
-    const session = await (await import("@/lib/auth")).auth();
+    const session = await (await import('@/lib/auth')).auth();
 
     const skill = await prisma.skill.findUnique({
       where: { id },
@@ -22,18 +22,18 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         tags: { include: { tag: true } },
         reactions: true,
         followers: { select: { userId: true } },
-        followerSnapshots: { orderBy: { snapshotDate: "asc" } },
+        followerSnapshots: { orderBy: { snapshotDate: 'asc' } },
         _count: { select: { comments: true, followers: true, changeRequests: true } },
       },
     });
 
-    if (!skill) return NextResponse.json({ error: "Not Found" }, { status: 404 });
+    if (!skill) return NextResponse.json({ error: 'Not Found' }, { status: 404 });
 
-    if (skill.status === "TEMPLATE") {
+    if (skill.status === 'TEMPLATE') {
       const isOwner = skill.owners.some((o) => o.userId === session?.user?.id);
-      const isAdmin = session?.user?.role === "ADMIN";
+      const isAdmin = session?.user?.role === 'ADMIN';
       if (!isOwner && !isAdmin) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }
 
@@ -47,7 +47,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 
@@ -56,7 +56,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
   if (limit) return limit;
 
   const session = await requireAuth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   try {
     const { id } = await params;
@@ -65,17 +65,17 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       include: { owners: true },
     });
 
-    if (!skill) return NextResponse.json({ error: "Not Found" }, { status: 404 });
-    if (skill.status === "RELEASED") {
-      return NextResponse.json({ error: "Cannot edit a released skill" }, { status: 400 });
+    if (!skill) return NextResponse.json({ error: 'Not Found' }, { status: 404 });
+    if (skill.status === 'RELEASED') {
+      return NextResponse.json({ error: 'Cannot edit a released skill' }, { status: 400 });
     }
 
     const isOwner = skill.owners.some((o) => o.userId === session.user.id);
-    if (!isOwner && session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!isOwner && session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const body = await req.json() as {
+    const body = (await req.json()) as {
       name?: string;
       description?: string;
       spec?: Record<string, unknown>;
@@ -120,7 +120,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           .filter((t) => !foundIds.has(t) && !foundNames.has(t))
           .slice(0, 10 - found.length);
         const createdTags = await Promise.all(
-          newTagNames.map((name) => tx.tag.create({ data: { name } }))
+          newTagNames.map((name) => tx.tag.create({ data: { name } })),
         );
         const allTagIds = new Set([...found.map((t) => t.id), ...createdTags.map((t) => t.id)]);
         const allTags = [...allTagIds].slice(0, 10);
@@ -135,7 +135,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ data: updated });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 
@@ -144,7 +144,7 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
   if (limit) return limit;
 
   const session = await requireAuth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   try {
     const { id } = await params;
@@ -153,17 +153,17 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
       include: { owners: true },
     });
 
-    if (!skill) return NextResponse.json({ error: "Not Found" }, { status: 404 });
+    if (!skill) return NextResponse.json({ error: 'Not Found' }, { status: 404 });
 
     const isOwner = skill.owners.some((o) => o.userId === session.user.id);
-    if (!isOwner && session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!isOwner && session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     await prisma.skill.delete({ where: { id } });
     return NextResponse.json({ data: { deleted: true } });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

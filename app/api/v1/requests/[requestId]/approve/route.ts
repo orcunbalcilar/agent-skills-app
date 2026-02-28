@@ -1,9 +1,9 @@
 // app/api/v1/requests/[requestId]/approve/route.ts
 
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { checkLimit, getIp, requireAuth } from "@/lib/api-helpers";
-import { dispatchNotification } from "@/lib/notifications";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { checkLimit, getIp, requireAuth } from '@/lib/api-helpers';
+import { dispatchNotification } from '@/lib/notifications';
 
 type RouteParams = { params: Promise<{ requestId: string }> };
 
@@ -12,7 +12,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
   if (limit) return limit;
 
   const session = await requireAuth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   try {
     const { requestId } = await params;
@@ -23,12 +23,12 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
         include: { skill: { include: { owners: true } } },
       });
 
-      if (!cr) return { error: "Not Found", status: 404 };
-      if (cr.status !== "OPEN") return { error: "Request is not OPEN", status: 400 };
+      if (!cr) return { error: 'Not Found', status: 404 };
+      if (cr.status !== 'OPEN') return { error: 'Request is not OPEN', status: 400 };
 
       const isOwner = cr.skill.owners.some((o) => o.userId === session.user.id);
-      if (!isOwner && session.user.role !== "ADMIN") {
-        return { error: "Forbidden", status: 403 };
+      if (!isOwner && session.user.role !== 'ADMIN') {
+        return { error: 'Forbidden', status: 403 };
       }
 
       // SELECT FOR UPDATE to prevent concurrent approvals
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       const updated = await tx.changeRequest.update({
         where: { id: requestId },
         data: {
-          status: "APPROVED",
+          status: 'APPROVED',
           resolvedById: session.user.id,
           resolvedAt: new Date(),
         },
@@ -51,16 +51,16 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       return { data: { request: updated, skillName: cr.skill.name } };
     });
 
-    if ("error" in result) {
+    if ('error' in result) {
       return NextResponse.json({ error: result.error }, { status: result.status });
     }
 
     const cr = await prisma.changeRequest.findUnique({ where: { id: requestId } });
     if (cr) {
-      await dispatchNotification("CHANGE_REQUEST_APPROVED", [cr.requesterId], {
+      await dispatchNotification('CHANGE_REQUEST_APPROVED', [cr.requesterId], {
         skillId: cr.skillId,
         skillName: result.data.skillName,
-        actorName: session.user.name ?? "Someone",
+        actorName: session.user.name ?? 'Someone',
         requestId,
       });
     }
@@ -68,6 +68,6 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ data: result.data.request });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

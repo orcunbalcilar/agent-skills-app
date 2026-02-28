@@ -1,11 +1,11 @@
 // tests/unit/hooks/useGlobalStats.test.ts
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook, waitFor, act } from "@testing-library/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import React from "react";
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { renderHook, waitFor, act } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import React from 'react';
 
 const mockFetch = vi.fn();
-vi.stubGlobal("fetch", mockFetch);
+vi.stubGlobal('fetch', mockFetch);
 
 // Mock EventSource
 const mockEventSourceInstances: Array<{
@@ -13,16 +13,19 @@ const mockEventSourceInstances: Array<{
   close: ReturnType<typeof vi.fn>;
 }> = [];
 
-vi.stubGlobal("EventSource", class MockEventSource {
-  onmessage: ((e: { data: string }) => void) | null = null;
-  close = vi.fn();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  constructor(_url: string) {
-    mockEventSourceInstances.push(this);
-  }
-});
+vi.stubGlobal(
+  'EventSource',
+  class MockEventSource {
+    onmessage: ((e: { data: string }) => void) | null = null;
+    close = vi.fn();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    constructor(_url: string) {
+      mockEventSourceInstances.push(this);
+    }
+  },
+);
 
-import { useGlobalStats } from "@/features/stats/hooks/useGlobalStats";
+import { useGlobalStats } from '@/features/stats/hooks/useGlobalStats';
 
 function createWrapper() {
   const qc = new QueryClient({
@@ -33,14 +36,14 @@ function createWrapper() {
   };
 }
 
-describe("useGlobalStats", () => {
+describe('useGlobalStats', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockEventSourceInstances.length = 0;
   });
   afterEach(() => vi.restoreAllMocks());
 
-  it("should fetch and merge with SSE updates", async () => {
+  it('should fetch and merge with SSE updates', async () => {
     // Two fetches for skills and downloads
     mockFetch
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ meta: { total: 100 } }) })
@@ -53,7 +56,7 @@ describe("useGlobalStats", () => {
     expect(result.current.data?.downloadCount).toBe(500);
   });
 
-  it("should update from SSE events", async () => {
+  it('should update from SSE events', async () => {
     mockFetch
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ meta: { total: 100 } }) })
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ meta: { total: 500 } }) });
@@ -73,7 +76,7 @@ describe("useGlobalStats", () => {
     await waitFor(() => expect(result.current.data?.skillCount).toBe(101));
   });
 
-  it("should close EventSource on unmount", async () => {
+  it('should close EventSource on unmount', async () => {
     mockFetch
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ meta: { total: 10 } }) })
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ meta: { total: 50 } }) });
@@ -85,7 +88,7 @@ describe("useGlobalStats", () => {
     expect(mockEventSourceInstances[0].close).toHaveBeenCalled();
   });
 
-  it("should handle malformed SSE data", async () => {
+  it('should handle malformed SSE data', async () => {
     mockFetch
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ meta: { total: 10 } }) })
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ meta: { total: 50 } }) });
@@ -97,7 +100,7 @@ describe("useGlobalStats", () => {
     const es = mockEventSourceInstances[0];
     if (es?.onmessage) {
       act(() => {
-        es.onmessage!({ data: "not-json" });
+        es.onmessage!({ data: 'not-json' });
       });
     }
 

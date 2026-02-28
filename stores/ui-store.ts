@@ -1,11 +1,11 @@
 // stores/ui-store.ts
-"use client";
+'use client';
 
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 interface UIStore {
-  theme: "light" | "dark";
+  theme: 'light' | 'dark';
   sidebarOpen: boolean;
   openModals: Record<string, boolean>;
   toggleTheme(): void;
@@ -17,14 +17,12 @@ interface UIStore {
 export const useUIStore = create<UIStore>()(
   persist(
     (set) => ({
-      theme: "light",
+      theme: 'light',
       sidebarOpen: true,
       openModals: {},
-      toggleTheme: () =>
-        set((state) => ({ theme: state.theme === "light" ? "dark" : "light" })),
+      toggleTheme: () => set((state) => ({ theme: state.theme === 'light' ? 'dark' : 'light' })),
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
-      openModal: (id) =>
-        set((state) => ({ openModals: { ...state.openModals, [id]: true } })),
+      openModal: (id) => set((state) => ({ openModals: { ...state.openModals, [id]: true } })),
       closeModal: (id) =>
         set((state) => {
           const updated = { ...state.openModals };
@@ -33,11 +31,11 @@ export const useUIStore = create<UIStore>()(
         }),
     }),
     {
-      name: "ui-preferences",
+      name: 'ui-preferences',
       partialize: (state) => ({
         theme: state.theme,
         sidebarOpen: state.sidebarOpen,
       }),
-    }
-  )
+    },
+  ),
 );

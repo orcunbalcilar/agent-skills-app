@@ -80,17 +80,17 @@ The seed script is guarded against production — it will refuse to run when `NO
 
 ## Tech Stack
 
-| Component     | Technology                              |
-| ------------- | --------------------------------------- |
-| Framework     | Next.js 16 (App Router) + React 19     |
-| Database      | PostgreSQL + Prisma 7                   |
-| State Mgmt    | Zustand (client), NextAuth (sessions)   |
-| Data Fetch    | TanStack React Query 5                  |
-| UI            | shadcn/ui + Tailwind CSS 4              |
-| Editor        | Monaco Editor                           |
-| Charts        | Recharts                                |
-| Analytics     | Matomo                                  |
-| Testing       | Vitest (unit) + Playwright (E2E)        |
+| Component  | Technology                            |
+| ---------- | ------------------------------------- |
+| Framework  | Next.js 16 (App Router) + React 19    |
+| Database   | PostgreSQL + Prisma 7                 |
+| State Mgmt | Zustand (client), NextAuth (sessions) |
+| Data Fetch | TanStack React Query 5                |
+| UI         | shadcn/ui + Tailwind CSS 4            |
+| Editor     | Monaco Editor                         |
+| Charts     | Recharts                              |
+| Analytics  | Matomo                                |
+| Testing    | Vitest (unit) + Playwright (E2E)      |
 
 ## Testing
 

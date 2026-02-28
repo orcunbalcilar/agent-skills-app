@@ -1,15 +1,15 @@
 // components/shared/SseProvider.tsx
-"use client";
+'use client';
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef } from "react";
-import { useNotificationStore } from "@/stores/notification-store";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef } from 'react';
+import { useNotificationStore } from '@/stores/notification-store';
 
 interface SseContextValue {
   notificationsUrl: string;
 }
 
 const SseContext = createContext<SseContextValue>({
-  notificationsUrl: "/api/v1/sse/notifications",
+  notificationsUrl: '/api/v1/sse/notifications',
 });
 
 export function useSse() {
@@ -28,9 +28,9 @@ export function SseProvider({ children, userId }: Readonly<SseProviderProps>) {
 
   const fetchInitialUnreadCount = useCallback(async () => {
     try {
-      const res = await fetch("/api/v1/notifications?page=1&pageSize=100");
+      const res = await fetch('/api/v1/notifications?page=1&pageSize=100');
       if (!res.ok) return;
-      const json = await res.json() as { data?: Array<{ read: boolean }> };
+      const json = (await res.json()) as { data?: Array<{ read: boolean }> };
       if (json.data) {
         const unread = json.data.filter((n) => !n.read).length;
         setUnreadCount(unread);
@@ -45,7 +45,7 @@ export function SseProvider({ children, userId }: Readonly<SseProviderProps>) {
 
     fetchInitialUnreadCount();
 
-    const es = new EventSource("/api/v1/sse/notifications");
+    const es = new EventSource('/api/v1/sse/notifications');
     esRef.current = es;
 
     es.onmessage = () => {
@@ -61,14 +61,7 @@ export function SseProvider({ children, userId }: Readonly<SseProviderProps>) {
     };
   }, [userId, incrementUnreadCount, fetchInitialUnreadCount]);
 
-  const ctxValue = useMemo(
-    () => ({ notificationsUrl: "/api/v1/sse/notifications" }),
-    []
-  );
+  const ctxValue = useMemo(() => ({ notificationsUrl: '/api/v1/sse/notifications' }), []);
 
-  return (
-    <SseContext.Provider value={ctxValue}>
-      {children}
-    </SseContext.Provider>
-  );
+  return <SseContext.Provider value={ctxValue}>{children}</SseContext.Provider>;
 }

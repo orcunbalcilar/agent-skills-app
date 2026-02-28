@@ -1,9 +1,9 @@
 // components/layout/MainLayout.tsx
-"use client";
+'use client';
 
-import { SseProvider } from "@/components/shared/SseProvider";
-import { Header } from "./Header";
-import { Sidebar } from "./Sidebar";
+import { SseProvider } from '@/components/shared/SseProvider';
+import { Header } from './Header';
+import { Sidebar } from './Sidebar';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -12,15 +12,10 @@ interface MainLayoutProps {
   isAdmin?: boolean;
 }
 
-export function MainLayout({
-  children,
-  user,
-  userId,
-  isAdmin,
-}: Readonly<MainLayoutProps>) {
+export function MainLayout({ children, user, userId, isAdmin }: Readonly<MainLayoutProps>) {
   return (
     <SseProvider userId={userId}>
-      <div className="flex flex-col min-h-screen">
+      <div className="flex min-h-screen flex-col">
         <Header user={user} />
         <div className="flex flex-1 overflow-hidden">
           <Sidebar isAdmin={isAdmin} />

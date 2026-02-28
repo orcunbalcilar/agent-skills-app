@@ -1,7 +1,7 @@
 // features/skills/hooks/useSkillMutations.ts
-"use client";
+'use client';
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface CreateSkillInput {
   name: string;
@@ -23,35 +23,35 @@ interface UpdateSkillInput {
 
 async function apiPost(url: string, body: unknown) {
   const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
   if (!res.ok) {
-    const err = await res.json() as { error?: string };
-    throw new Error(err.error ?? "Request failed");
+    const err = (await res.json()) as { error?: string };
+    throw new Error(err.error ?? 'Request failed');
   }
   return res.json() as Promise<{ data: unknown }>;
 }
 
 async function apiPatch(url: string, body: unknown) {
   const res = await fetch(url, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
   if (!res.ok) {
-    const err = await res.json() as { error?: string };
-    throw new Error(err.error ?? "Request failed");
+    const err = (await res.json()) as { error?: string };
+    throw new Error(err.error ?? 'Request failed');
   }
   return res.json() as Promise<{ data: unknown }>;
 }
 
 async function apiDelete(url: string) {
-  const res = await fetch(url, { method: "DELETE" });
+  const res = await fetch(url, { method: 'DELETE' });
   if (!res.ok) {
-    const err = await res.json() as { error?: string };
-    throw new Error(err.error ?? "Request failed");
+    const err = (await res.json()) as { error?: string };
+    throw new Error(err.error ?? 'Request failed');
   }
   return res.json() as Promise<{ data: unknown }>;
 }
@@ -59,8 +59,10 @@ async function apiDelete(url: string) {
 export function useCreateSkill() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: CreateSkillInput) => apiPost("/api/v1/skills", input),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["skills"] }); },
+    mutationFn: (input: CreateSkillInput) => apiPost('/api/v1/skills', input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['skills'] });
+    },
   });
 }
 
@@ -69,8 +71,8 @@ export function useUpdateSkill() {
   return useMutation({
     mutationFn: ({ id, ...data }: UpdateSkillInput) => apiPatch(`/api/v1/skills/${id}`, data),
     onSuccess: (_d, vars) => {
-      qc.invalidateQueries({ queryKey: ["skill", vars.id] });
-      qc.invalidateQueries({ queryKey: ["skills"] });
+      qc.invalidateQueries({ queryKey: ['skill', vars.id] });
+      qc.invalidateQueries({ queryKey: ['skills'] });
     },
   });
 }
@@ -79,7 +81,9 @@ export function useDeleteSkill() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => apiDelete(`/api/v1/skills/${id}`),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["skills"] }); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['skills'] });
+    },
   });
 }
 
@@ -88,8 +92,8 @@ export function useReleaseSkill() {
   return useMutation({
     mutationFn: (id: string) => apiPost(`/api/v1/skills/${id}/release`, {}),
     onSuccess: (_d, id) => {
-      qc.invalidateQueries({ queryKey: ["skill", id] });
-      qc.invalidateQueries({ queryKey: ["skills"] });
+      qc.invalidateQueries({ queryKey: ['skill', id] });
+      qc.invalidateQueries({ queryKey: ['skills'] });
     },
   });
 }
@@ -98,7 +102,9 @@ export function useForkSkill() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => apiPost(`/api/v1/skills/${id}/fork`, {}),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["skills"] }); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['skills'] });
+    },
   });
 }
 
@@ -110,9 +116,9 @@ export function useToggleFollow(skillId: string, isFollowing: boolean) {
         ? apiDelete(`/api/v1/skills/${skillId}/follow`)
         : apiPost(`/api/v1/skills/${skillId}/follow`, {}),
     onMutate: async () => {
-      await qc.cancelQueries({ queryKey: ["skill", skillId] });
-      const previous = qc.getQueryData(["skill", skillId]);
-      qc.setQueryData(["skill", skillId], (old: Record<string, unknown> | undefined) => {
+      await qc.cancelQueries({ queryKey: ['skill', skillId] });
+      const previous = qc.getQueryData(['skill', skillId]);
+      qc.setQueryData(['skill', skillId], (old: Record<string, unknown> | undefined) => {
         if (!old) return old;
         const count = (old._count as Record<string, number>) ?? {};
         return {
@@ -127,11 +133,11 @@ export function useToggleFollow(skillId: string, isFollowing: boolean) {
     },
     onError: (_err, _vars, context) => {
       if (context?.previous) {
-        qc.setQueryData(["skill", skillId], context.previous);
+        qc.setQueryData(['skill', skillId], context.previous);
       }
     },
     onSettled: () => {
-      qc.invalidateQueries({ queryKey: ["skill", skillId] });
+      qc.invalidateQueries({ queryKey: ['skill', skillId] });
     },
   });
 }
@@ -140,6 +146,8 @@ export function useToggleSkillReaction(skillId: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (emoji: string) => apiPost(`/api/v1/skills/${skillId}/reactions`, { emoji }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["skill", skillId] }); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['skill', skillId] });
+    },
   });
 }

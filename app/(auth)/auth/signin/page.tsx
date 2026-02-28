@@ -1,34 +1,31 @@
 // app/(auth)/auth/signin/page.tsx
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { signIn } from 'next-auth/react';
+import { useState } from 'react';
 
 export default function SignInPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const isDev = process.env.NODE_ENV === "development";
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const isDev = process.env.NODE_ENV === 'development';
 
   return (
-    <div className="flex min-h-screen items-center justify-center relative">
-      <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-primary/3 pointer-events-none" />
-      <Card className="w-full max-w-sm border-border/50 shadow-xl animate-fade-in relative">
-        <div className="absolute inset-0 rounded-[inherit] bg-linear-to-br from-primary/3 to-transparent pointer-events-none" />
+    <div className="relative flex min-h-screen items-center justify-center">
+      <div className="from-primary/5 to-primary/3 pointer-events-none absolute inset-0 bg-linear-to-br via-transparent" />
+      <Card className="border-border/50 animate-fade-in relative w-full max-w-sm shadow-xl">
+        <div className="from-primary/3 pointer-events-none absolute inset-0 rounded-[inherit] bg-linear-to-br to-transparent" />
         <CardHeader className="relative">
           <CardTitle className="text-center text-xl">
             <span className="gradient-text font-bold">Agent Skills</span>
-            <p className="text-sm text-muted-foreground font-normal mt-1">Sign in to continue</p>
+            <p className="text-muted-foreground mt-1 text-sm font-normal">Sign in to continue</p>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4 relative">
-          <Button
-            className="w-full"
-            onClick={() => signIn("github", { callbackUrl: "/" })}
-          >
+        <CardContent className="relative space-y-4">
+          <Button className="w-full" onClick={() => signIn('github', { callbackUrl: '/' })}>
             Sign in with GitHub
           </Button>
 
@@ -39,9 +36,7 @@ export default function SignInPage() {
                   <span className="w-full border-t" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">
-                    Dev only
-                  </span>
+                  <span className="bg-background text-muted-foreground px-2">Dev only</span>
                 </div>
               </div>
               <div className="space-y-2">
@@ -67,10 +62,10 @@ export default function SignInPage() {
                 className="w-full"
                 variant="secondary"
                 onClick={() =>
-                  signIn("credentials", {
+                  signIn('credentials', {
                     email,
                     password,
-                    callbackUrl: "/",
+                    callbackUrl: '/',
                   })
                 }
               >

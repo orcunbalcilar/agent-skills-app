@@ -1,8 +1,8 @@
 // features/skills/components/FileTree.tsx
-"use client";
+'use client';
 
-import { useState, useMemo } from "react";
-import { cn } from "@/lib/utils";
+import { useState, useMemo } from 'react';
+import { cn } from '@/lib/utils';
 
 export interface SkillFile {
   path: string;
@@ -20,13 +20,13 @@ function buildTree(files: SkillFile[]): TreeNode[] {
   const root: TreeNode[] = [];
 
   for (const file of files) {
-    const parts = file.path.split("/");
+    const parts = file.path.split('/');
     let current = root;
 
     for (let i = 0; i < parts.length; i++) {
       const name = parts[i];
       const isDir = i < parts.length - 1;
-      const path = parts.slice(0, i + 1).join("/");
+      const path = parts.slice(0, i + 1).join('/');
       let existing = current.find((n) => n.name === name && n.isDir === isDir);
 
       if (!existing) {
@@ -50,28 +50,28 @@ function sortTree(nodes: TreeNode[]): TreeNode[] {
 }
 
 function getFileIcon(name: string): string {
-  const ext = name.split(".").pop()?.toLowerCase();
+  const ext = name.split('.').pop()?.toLowerCase();
   switch (ext) {
-    case "md":
-      return "📄";
-    case "ts":
-    case "tsx":
-      return "🟦";
-    case "js":
-    case "jsx":
-      return "🟨";
-    case "json":
-      return "📋";
-    case "yaml":
-    case "yml":
-      return "⚙️";
-    case "py":
-      return "🐍";
-    case "sh":
-    case "bash":
-      return "🖥️";
+    case 'md':
+      return '📄';
+    case 'ts':
+    case 'tsx':
+      return '🟦';
+    case 'js':
+    case 'jsx':
+      return '🟨';
+    case 'json':
+      return '📋';
+    case 'yaml':
+    case 'yml':
+      return '⚙️';
+    case 'py':
+      return '🐍';
+    case 'sh':
+    case 'bash':
+      return '🖥️';
     default:
-      return "📃";
+      return '📃';
   }
 }
 
@@ -91,12 +91,12 @@ function TreeNodeItem({ node, depth, selectedPath, onSelect }: Readonly<TreeNode
         <button
           type="button"
           className={cn(
-            "flex w-full items-center gap-1 rounded px-1 py-0.5 text-sm hover:bg-accent text-left",
+            'hover:bg-accent flex w-full items-center gap-1 rounded px-1 py-0.5 text-left text-sm',
             `pl-[${depth * 12 + 4}px]`,
           )}
           onClick={() => setExpanded(!expanded)}
         >
-          <span className="text-xs">{expanded ? "▼" : "▶"}</span>
+          <span className="text-xs">{expanded ? '▼' : '▶'}</span>
           <span>📁</span>
           <span>{node.name}</span>
         </button>
@@ -118,8 +118,8 @@ function TreeNodeItem({ node, depth, selectedPath, onSelect }: Readonly<TreeNode
     <button
       type="button"
       className={cn(
-        "flex w-full items-center gap-1 rounded px-1 py-0.5 text-sm hover:bg-accent text-left",
-        selectedPath === node.path && "bg-accent font-medium",
+        'hover:bg-accent flex w-full items-center gap-1 rounded px-1 py-0.5 text-left text-sm',
+        selectedPath === node.path && 'bg-accent font-medium',
         `pl-[${depth * 12 + 4}px]`,
       )}
       onClick={() => onSelect(node.path)}
@@ -140,8 +140,8 @@ export function FileTree({ files, selectedPath, onSelect }: Readonly<FileTreePro
   const tree = useMemo(() => buildTree(files), [files]);
 
   return (
-    <div className="border rounded-md p-2 min-w-48 max-h-125 overflow-auto bg-background">
-      <p className="text-xs font-semibold text-muted-foreground mb-1 px-1">Files</p>
+    <div className="bg-background max-h-125 min-w-48 overflow-auto rounded-md border p-2">
+      <p className="text-muted-foreground mb-1 px-1 text-xs font-semibold">Files</p>
       {tree.map((node) => (
         <TreeNodeItem
           key={node.path}

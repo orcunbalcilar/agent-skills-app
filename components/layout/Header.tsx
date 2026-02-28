@@ -1,24 +1,24 @@
 // components/layout/Header.tsx
-"use client";
+'use client';
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { useNotificationStore } from "@/stores/notification-store";
-import { useUIStore } from "@/stores/ui-store";
-import { Bell, LogOut, Moon, Settings, Sun, User } from "lucide-react";
-import { signOut } from "next-auth/react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { useNotificationStore } from '@/stores/notification-store';
+import { useUIStore } from '@/stores/ui-store';
+import { Bell, LogOut, Moon, Settings, Sun, User } from 'lucide-react';
+import { signOut } from 'next-auth/react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useCallback, useState } from 'react';
 
 interface HeaderUser {
   name?: string | null;
@@ -35,7 +35,7 @@ export function Header({ user }: Readonly<HeaderProps>) {
   const toggleTheme = useUIStore((s) => s.toggleTheme);
   const theme = useUIStore((s) => s.theme);
   const unreadCount = useNotificationStore((s) => s.unreadCount);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState('');
 
   const handleSearch = useCallback(
     (e: React.FormEvent<HTMLFormElement>) => {
@@ -48,38 +48,42 @@ export function Header({ user }: Readonly<HeaderProps>) {
   );
 
   const initials = user?.name
-    ?.split(" ")
+    ?.split(' ')
     .map((n) => n[0])
-    .join("")
+    .join('')
     .slice(0, 2)
     .toUpperCase();
 
   return (
-    <header className="border-b border-border/50 bg-background/80 backdrop-blur-xl sticky top-0 z-50 h-14 flex items-center px-4 gap-4">
-      <Link href="/" className="font-bold text-lg shrink-0 gradient-text tracking-tight">
+    <header className="border-border/50 bg-background/80 sticky top-0 z-50 flex h-14 items-center gap-4 border-b px-4 backdrop-blur-xl">
+      <Link href="/" className="gradient-text shrink-0 text-lg font-bold tracking-tight">
         AgentSkills
       </Link>
 
-      <form onSubmit={handleSearch} className="flex-1 max-w-md">
+      <form onSubmit={handleSearch} className="max-w-md flex-1">
         <Input
           type="search"
           placeholder="Search skills…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           aria-label="Search skills"
-          className="h-8 bg-muted/50 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all"
+          className="bg-muted/50 border-border/50 focus:border-primary/50 focus:ring-primary/20 h-8 transition-all"
         />
       </form>
 
-      <div className="flex items-center gap-1.5 ml-auto">
+      <div className="ml-auto flex items-center gap-1.5">
         <Button
           variant="ghost"
           size="sm"
           onClick={toggleTheme}
           aria-label="Toggle dark/light mode"
-          className="rounded-full h-8 w-8 p-0"
+          className="h-8 w-8 rounded-full p-0"
         >
-          {theme === "dark" ? <Sun className="size-4" data-testid="icon-sun" /> : <Moon className="size-4" data-testid="icon-moon" />}
+          {theme === 'dark' ? (
+            <Sun className="size-4" data-testid="icon-sun" />
+          ) : (
+            <Moon className="size-4" data-testid="icon-moon" />
+          )}
         </Button>
 
         {user ? (
@@ -90,16 +94,15 @@ export function Header({ user }: Readonly<HeaderProps>) {
                 className="relative h-8 w-8 rounded-full p-0"
                 aria-label="User menu"
               >
-                <Avatar className="h-8 w-8 ring-2 ring-primary/20 transition-all hover:ring-primary/40">
-                  <AvatarImage
-                    src={user.image ?? undefined}
-                    alt={user.name ?? "User"}
-                  />
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">{initials ?? "U"}</AvatarFallback>
+                <Avatar className="ring-primary/20 hover:ring-primary/40 h-8 w-8 ring-2 transition-all">
+                  <AvatarImage src={user.image ?? undefined} alt={user.name ?? 'User'} />
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                    {initials ?? 'U'}
+                  </AvatarFallback>
                 </Avatar>
                 {unreadCount > 0 && (
-                  <Badge className="absolute -top-1.5 -right-1.5 h-4 min-w-4 p-0 flex items-center justify-center text-[10px] font-bold glow-accent animate-fade-in">
-                    {unreadCount > 99 ? "99+" : unreadCount}
+                  <Badge className="glow-accent animate-fade-in absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center p-0 text-[10px] font-bold">
+                    {unreadCount > 99 ? '99+' : unreadCount}
                   </Badge>
                 )}
               </Button>
@@ -116,8 +119,11 @@ export function Header({ user }: Readonly<HeaderProps>) {
                   <Bell className="size-4" />
                   Notifications
                   {unreadCount > 0 && (
-                    <Badge variant="destructive" className="ml-auto h-5 min-w-5 p-0 flex items-center justify-center text-[10px]">
-                      {unreadCount > 99 ? "99+" : unreadCount}
+                    <Badge
+                      variant="destructive"
+                      className="ml-auto flex h-5 min-w-5 items-center justify-center p-0 text-[10px]"
+                    >
+                      {unreadCount > 99 ? '99+' : unreadCount}
                     </Badge>
                   )}
                 </Link>
@@ -130,7 +136,7 @@ export function Header({ user }: Readonly<HeaderProps>) {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => signOut({ callbackUrl: "/auth/signin" })}
+                onClick={() => signOut({ callbackUrl: '/auth/signin' })}
                 className="flex items-center gap-2"
               >
                 <LogOut className="size-4" />

@@ -1,24 +1,24 @@
-import { MatomoProvider } from "@/components/shared/MatomoProvider";
-import { QueryProvider } from "@/components/shared/QueryProvider";
-import { ThemeProvider } from "@/components/shared/ThemeProvider";
-import type { Metadata } from "next";
-import { SessionProvider } from "next-auth/react";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import { MatomoProvider } from '@/components/shared/MatomoProvider';
+import { QueryProvider } from '@/components/shared/QueryProvider';
+import { ThemeProvider } from '@/components/shared/ThemeProvider';
+import type { Metadata } from 'next';
+import { SessionProvider } from 'next-auth/react';
+import { Geist, Geist_Mono } from 'next/font/google';
+import './globals.css';
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
 });
 
 export const metadata: Metadata = {
-  title: "Agent Skills",
-  description: "AI Agent Skills Management Platform",
+  title: 'Agent Skills',
+  description: 'AI Agent Skills Management Platform',
 };
 
 export default function RootLayout({
@@ -28,9 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <SessionProvider>
           <QueryProvider>
             <ThemeProvider>

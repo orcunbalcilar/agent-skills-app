@@ -1,9 +1,9 @@
 // tests/unit/hooks/use-tags.test.ts
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { ReactNode } from "react";
-import { useTags, useCreateTag, useDeleteTag } from "@/features/tags/hooks/useTags";
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { renderHook, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
+import { useTags, useCreateTag, useDeleteTag } from '@/features/tags/hooks/useTags';
 
 const fetchMock = vi.fn();
 globalThis.fetch = fetchMock;
@@ -17,7 +17,7 @@ function createWrapper() {
   };
 }
 
-describe("useTags", () => {
+describe('useTags', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -26,8 +26,8 @@ describe("useTags", () => {
     vi.restoreAllMocks();
   });
 
-  it("should fetch tags", async () => {
-    const tags = [{ id: "t1", name: "react", isSystem: true }];
+  it('should fetch tags', async () => {
+    const tags = [{ id: 't1', name: 'react', isSystem: true }];
     fetchMock.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({ data: tags }),
@@ -39,7 +39,7 @@ describe("useTags", () => {
     expect(result.current.data).toEqual(tags);
   });
 
-  it("should throw on network error", async () => {
+  it('should throw on network error', async () => {
     fetchMock.mockResolvedValueOnce({ ok: false, status: 500 });
 
     const { result } = renderHook(() => useTags(), { wrapper: createWrapper() });
@@ -47,45 +47,51 @@ describe("useTags", () => {
   });
 });
 
-describe("useCreateTag", () => {
+describe('useCreateTag', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("should create a tag", async () => {
-    const tag = { id: "t1", name: "new-tag", isSystem: false };
+  it('should create a tag', async () => {
+    const tag = { id: 't1', name: 'new-tag', isSystem: false };
     fetchMock.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({ data: tag }),
     });
 
     const { result } = renderHook(() => useCreateTag(), { wrapper: createWrapper() });
-    result.current.mutate("new-tag");
+    result.current.mutate('new-tag');
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(fetchMock).toHaveBeenCalledWith("/api/v1/tags", expect.objectContaining({
-      method: "POST",
-    }));
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/tags',
+      expect.objectContaining({
+        method: 'POST',
+      }),
+    );
   });
 });
 
-describe("useDeleteTag", () => {
+describe('useDeleteTag', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("should delete a tag", async () => {
+  it('should delete a tag', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({ data: {} }),
     });
 
     const { result } = renderHook(() => useDeleteTag(), { wrapper: createWrapper() });
-    result.current.mutate("t1");
+    result.current.mutate('t1');
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(fetchMock).toHaveBeenCalledWith("/api/v1/tags/t1", expect.objectContaining({
-      method: "DELETE",
-    }));
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/tags/t1',
+      expect.objectContaining({
+        method: 'DELETE',
+      }),
+    );
   });
 });

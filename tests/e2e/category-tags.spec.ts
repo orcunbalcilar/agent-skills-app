@@ -1,13 +1,13 @@
 // tests/e2e/category-tags.spec.ts
-import { test, expect } from "@playwright/test";
+import { test, expect } from '@playwright/test';
 
-test.describe("Category tags filtering", () => {
-  test("should display category filter section on skills page", async ({ page }) => {
-    await page.goto("/skills");
+test.describe('Category tags filtering', () => {
+  test('should display category filter section on skills page', async ({ page }) => {
+    await page.goto('/skills');
     await page.waitForTimeout(500);
     // The CategoryFilter renders system tags under a "Categories" heading
     // If there are system tags, the section is visible
-    const categories = page.getByText("Categories");
+    const categories = page.getByText('Categories');
     if (await categories.isVisible()) {
       await expect(categories).toBeVisible();
     } else {
@@ -16,12 +16,12 @@ test.describe("Category tags filtering", () => {
     }
   });
 
-  test("clicking a category tag should filter skills", async ({ page }) => {
-    await page.goto("/skills");
+  test('clicking a category tag should filter skills', async ({ page }) => {
+    await page.goto('/skills');
     await page.waitForTimeout(500);
-    const categories = page.getByText("Categories");
+    const categories = page.getByText('Categories');
     if (await categories.isVisible()) {
-      const firstBadge = categories.locator("..").locator("[data-slot='badge']").first();
+      const firstBadge = categories.locator('..').locator("[data-slot='badge']").first();
       if (await firstBadge.isVisible()) {
         await firstBadge.click();
         await page.waitForTimeout(500);
@@ -29,12 +29,12 @@ test.describe("Category tags filtering", () => {
     }
   });
 
-  test("clicking a selected category tag should deselect it", async ({ page }) => {
-    await page.goto("/skills");
+  test('clicking a selected category tag should deselect it', async ({ page }) => {
+    await page.goto('/skills');
     await page.waitForTimeout(500);
-    const categories = page.getByText("Categories");
+    const categories = page.getByText('Categories');
     if (await categories.isVisible()) {
-      const firstBadge = categories.locator("..").locator("[data-slot='badge']").first();
+      const firstBadge = categories.locator('..').locator("[data-slot='badge']").first();
       if (await firstBadge.isVisible()) {
         // Select
         await firstBadge.click();

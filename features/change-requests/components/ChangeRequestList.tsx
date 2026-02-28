@@ -1,18 +1,18 @@
 // features/change-requests/components/ChangeRequestList.tsx
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Pagination } from "@/components/shared/Pagination";
+import { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Pagination } from '@/components/shared/Pagination';
 import {
   useChangeRequests,
   useApproveChangeRequest,
   useRejectChangeRequest,
   useWithdrawChangeRequest,
-} from "../hooks/useChangeRequests";
+} from '../hooks/useChangeRequests';
 
 interface ChangeRequestListProps {
   skillId: string;
@@ -20,11 +20,11 @@ interface ChangeRequestListProps {
   isOwnerOrAdmin?: boolean;
 }
 
-const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  OPEN: "default",
-  APPROVED: "secondary",
-  REJECTED: "destructive",
-  WITHDRAWN: "outline",
+const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+  OPEN: 'default',
+  APPROVED: 'secondary',
+  REJECTED: 'destructive',
+  WITHDRAWN: 'outline',
 };
 
 export function ChangeRequestList({
@@ -56,10 +56,8 @@ export function ChangeRequestList({
                 <CardTitle className="text-sm">{cr.title}</CardTitle>
               </div>
               <div className="flex items-center gap-2">
-                <Badge variant={STATUS_VARIANT[cr.status] ?? "outline"}>
-                  {cr.status}
-                </Badge>
-                <span className="text-xs text-muted-foreground">
+                <Badge variant={STATUS_VARIANT[cr.status] ?? 'outline'}>{cr.status}</Badge>
+                <span className="text-muted-foreground text-xs">
                   {new Date(cr.createdAt).toLocaleDateString()}
                 </span>
               </div>
@@ -69,7 +67,7 @@ export function ChangeRequestList({
             <CardContent className="space-y-3">
               <p className="text-sm whitespace-pre-wrap">{cr.description}</p>
               <div className="flex gap-2">
-                {cr.status === "OPEN" && isOwnerOrAdmin && (
+                {cr.status === 'OPEN' && isOwnerOrAdmin && (
                   <>
                     <Button
                       size="sm"
@@ -88,7 +86,7 @@ export function ChangeRequestList({
                     </Button>
                   </>
                 )}
-                {cr.status === "OPEN" && currentUserId === cr.requesterId && (
+                {cr.status === 'OPEN' && currentUserId === cr.requesterId && (
                   <Button
                     size="sm"
                     variant="outline"
@@ -105,15 +103,11 @@ export function ChangeRequestList({
       ))}
 
       {data?.data.length === 0 && (
-        <p className="text-sm text-muted-foreground py-4">No change requests.</p>
+        <p className="text-muted-foreground py-4 text-sm">No change requests.</p>
       )}
 
       {data?.meta && data.meta.totalPages > 1 && (
-        <Pagination
-          page={page}
-          totalPages={data.meta.totalPages}
-          onPageChange={setPage}
-        />
+        <Pagination page={page} totalPages={data.meta.totalPages} onPageChange={setPage} />
       )}
     </div>
   );

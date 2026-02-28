@@ -1,5 +1,5 @@
 // tests/unit/lib/sse.test.ts
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const { mockQueryFn, mockEndFn, mockConnectFn, mockOnFn } = vi.hoisted(() => ({
   mockQueryFn: vi.fn().mockResolvedValue(undefined),
@@ -8,7 +8,7 @@ const { mockQueryFn, mockEndFn, mockConnectFn, mockOnFn } = vi.hoisted(() => ({
   mockOnFn: vi.fn(),
 }));
 
-vi.mock("pg", () => {
+vi.mock('pg', () => {
   class Client {
     connect = mockConnectFn;
     query = mockQueryFn;
@@ -18,59 +18,59 @@ vi.mock("pg", () => {
   return { Client };
 });
 
-import { pgNotify, createListenClient, createSSEStream } from "@/lib/sse";
+import { pgNotify, createListenClient, createSSEStream } from '@/lib/sse';
 
-describe("pgNotify", () => {
+describe('pgNotify', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("should call pg_notify with sanitized channel", async () => {
+  it('should call pg_notify with sanitized channel', async () => {
     mockConnectFn.mockResolvedValue(undefined);
     mockQueryFn.mockResolvedValue(undefined);
 
-    await pgNotify("test-channel", '{"hello":"world"}');
+    await pgNotify('test-channel', '{"hello":"world"}');
 
     // First call is connect, second is the notify query
-    expect(mockQueryFn).toHaveBeenCalledWith(
-      "SELECT pg_notify($1, $2)",
-      ["test_channel", '{"hello":"world"}']
-    );
+    expect(mockQueryFn).toHaveBeenCalledWith('SELECT pg_notify($1, $2)', [
+      'test_channel',
+      '{"hello":"world"}',
+    ]);
   });
 
-  it("should sanitize special characters in channel name", async () => {
-    await pgNotify("my.special!channel@123", "payload");
+  it('should sanitize special characters in channel name', async () => {
+    await pgNotify('my.special!channel@123', 'payload');
 
-    expect(mockQueryFn).toHaveBeenCalledWith(
-      "SELECT pg_notify($1, $2)",
-      ["my_special_channel_123", "payload"]
-    );
+    expect(mockQueryFn).toHaveBeenCalledWith('SELECT pg_notify($1, $2)', [
+      'my_special_channel_123',
+      'payload',
+    ]);
   });
 
-  it("should not throw on errors", async () => {
-    mockQueryFn.mockRejectedValueOnce(new Error("connection failed"));
-    await expect(pgNotify("ch", "data")).resolves.toBeUndefined();
+  it('should not throw on errors', async () => {
+    mockQueryFn.mockRejectedValueOnce(new Error('connection failed'));
+    await expect(pgNotify('ch', 'data')).resolves.toBeUndefined();
   });
 });
 
-describe("createListenClient", () => {
+describe('createListenClient', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("should connect and LISTEN on sanitized channel", async () => {
+  it('should connect and LISTEN on sanitized channel', async () => {
     const onNotify = vi.fn();
-    const cleanup = await createListenClient("my-channel", onNotify);
+    const cleanup = await createListenClient('my-channel', onNotify);
 
     expect(mockConnectFn).toHaveBeenCalled();
     expect(mockQueryFn).toHaveBeenCalledWith('LISTEN "my_channel"');
-    expect(mockOnFn).toHaveBeenCalledWith("notification", expect.any(Function));
-    expect(typeof cleanup).toBe("function");
+    expect(mockOnFn).toHaveBeenCalledWith('notification', expect.any(Function));
+    expect(typeof cleanup).toBe('function');
   });
 
-  it("should call onNotify when a notification arrives with payload", async () => {
+  it('should call onNotify when a notification arrives with payload', async () => {
     const onNotify = vi.fn();
-    await createListenClient("ch", onNotify);
+    await createListenClient('ch', onNotify);
 
     // Simulate notification callback
     const notificationHandler = mockOnFn.mock.calls[0][1];
@@ -79,9 +79,9 @@ describe("createListenClient", () => {
     expect(onNotify).toHaveBeenCalledWith('{"id":"1"}');
   });
 
-  it("should not call onNotify when payload is empty", async () => {
+  it('should not call onNotify when payload is empty', async () => {
     const onNotify = vi.fn();
-    await createListenClient("ch", onNotify);
+    await createListenClient('ch', onNotify);
 
     const notificationHandler = mockOnFn.mock.calls[0][1];
     notificationHandler({ payload: undefined });
@@ -89,8 +89,8 @@ describe("createListenClient", () => {
     expect(onNotify).not.toHaveBeenCalled();
   });
 
-  it("should UNLISTEN and end on cleanup", async () => {
-    const cleanup = await createListenClient("ch", vi.fn());
+  it('should UNLISTEN and end on cleanup', async () => {
+    const cleanup = await createListenClient('ch', vi.fn());
     await cleanup();
 
     expect(mockQueryFn).toHaveBeenCalledWith('UNLISTEN "ch"');
@@ -98,7 +98,7 @@ describe("createListenClient", () => {
   });
 });
 
-describe("createSSEStream", () => {
+describe('createSSEStream', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
@@ -109,28 +109,28 @@ describe("createSSEStream", () => {
     vi.restoreAllMocks();
   });
 
-  it("should return stream and cleanup function", () => {
-    const { stream, cleanup } = createSSEStream("ch");
+  it('should return stream and cleanup function', () => {
+    const { stream, cleanup } = createSSEStream('ch');
     expect(stream).toBeInstanceOf(ReadableStream);
-    expect(typeof cleanup).toBe("function");
+    expect(typeof cleanup).toBe('function');
   });
 
-  it("should send initial ping when stream starts", async () => {
+  it('should send initial ping when stream starts', async () => {
     vi.useRealTimers();
-    const { stream, cleanup } = createSSEStream("ch");
+    const { stream, cleanup } = createSSEStream('ch');
     const reader = stream.getReader();
     const decoder = new TextDecoder();
 
     const { value } = await reader.read();
-    expect(decoder.decode(value)).toBe(": ping\n\n");
+    expect(decoder.decode(value)).toBe(': ping\n\n');
 
     reader.releaseLock();
     await cleanup();
   });
 
-  it("should send heartbeat pings at intervals", async () => {
+  it('should send heartbeat pings at intervals', async () => {
     vi.useRealTimers();
-    const { stream, cleanup } = createSSEStream("ch");
+    const { stream, cleanup } = createSSEStream('ch');
     const reader = stream.getReader();
     const decoder = new TextDecoder();
 
@@ -142,17 +142,17 @@ describe("createSSEStream", () => {
     if (notifyHandler) {
       notifyHandler({ payload: '{"test":true}' });
       const { value: dataValue } = await reader.read();
-      expect(decoder.decode(dataValue)).toContain("data:");
+      expect(decoder.decode(dataValue)).toContain('data:');
     }
 
     reader.releaseLock();
     await cleanup();
   });
 
-  it("should call onCleanup when stream is cancelled", async () => {
+  it('should call onCleanup when stream is cancelled', async () => {
     vi.useRealTimers();
     const onCleanup = vi.fn();
-    const { stream } = createSSEStream("ch", onCleanup);
+    const { stream } = createSSEStream('ch', onCleanup);
     const reader = stream.getReader();
 
     // Read initial ping
@@ -162,7 +162,7 @@ describe("createSSEStream", () => {
     expect(onCleanup).toHaveBeenCalled();
   });
 
-  it("should handle heartbeat enqueue failure gracefully", async () => {
+  it('should handle heartbeat enqueue failure gracefully', async () => {
     vi.useRealTimers();
 
     // Capture the heartbeat callback so we can invoke it after stream is cancelled
@@ -173,7 +173,7 @@ describe("createSSEStream", () => {
       return origSetInterval(fn, ms);
     }) as typeof globalThis.setInterval;
 
-    const { stream } = createSSEStream("ch");
+    const { stream } = createSSEStream('ch');
     const reader = stream.getReader();
 
     await reader.read(); // Read initial ping
@@ -187,7 +187,7 @@ describe("createSSEStream", () => {
     globalThis.setInterval = origSetInterval;
   });
 
-  it("should handle heartbeat catch when heartbeatId is falsy", async () => {
+  it('should handle heartbeat catch when heartbeatId is falsy', async () => {
     vi.useRealTimers();
 
     let heartbeatFn: (() => void) | undefined;
@@ -202,7 +202,7 @@ describe("createSSEStream", () => {
       return origSetInterval(fn, ms);
     }) as typeof globalThis.setInterval;
 
-    const { stream } = createSSEStream("ch");
+    const { stream } = createSSEStream('ch');
     const reader = stream.getReader();
     await reader.read();
     await reader.cancel();
@@ -214,9 +214,9 @@ describe("createSSEStream", () => {
     globalThis.setInterval = origSetInterval;
   });
 
-  it("should handle notification enqueue failure gracefully", async () => {
+  it('should handle notification enqueue failure gracefully', async () => {
     vi.useRealTimers();
-    const { stream, cleanup } = createSSEStream("ch");
+    const { stream, cleanup } = createSSEStream('ch');
     const reader = stream.getReader();
 
     // Read initial ping
@@ -227,7 +227,7 @@ describe("createSSEStream", () => {
 
     // If a notification arrives after cancel, the catch block in the listener handles it
     const notifyHandler = mockOnFn.mock.calls.find(
-      (call: unknown[]) => call[0] === "notification"
+      (call: unknown[]) => call[0] === 'notification',
     )?.[1];
     if (notifyHandler) {
       notifyHandler({ payload: '{"test":true}' });
@@ -236,13 +236,13 @@ describe("createSSEStream", () => {
     await cleanup();
   });
 
-  it("should handle cancel when cleanupFn is not yet set", async () => {
+  it('should handle cancel when cleanupFn is not yet set', async () => {
     // Make createListenClient never resolve so cleanupFn stays null during cancel
     mockConnectFn.mockReturnValue(new Promise(() => {})); // never resolves
-    
+
     vi.useRealTimers();
     const onCleanup = vi.fn();
-    const { stream } = createSSEStream("ch", onCleanup);
+    const { stream } = createSSEStream('ch', onCleanup);
     const reader = stream.getReader();
 
     // Cancel immediately before start() finishes (cleanupFn is still null)
@@ -253,13 +253,13 @@ describe("createSSEStream", () => {
     mockConnectFn.mockResolvedValue(undefined);
   });
 
-  it("should handle cancel when cleanupFn rejects", async () => {
+  it('should handle cancel when cleanupFn rejects', async () => {
     // Make client.end reject so cleanupFn().catch fires
-    mockEndFn.mockRejectedValueOnce(new Error("connection lost"));
+    mockEndFn.mockRejectedValueOnce(new Error('connection lost'));
 
     vi.useRealTimers();
     const onCleanup = vi.fn();
-    const { stream } = createSSEStream("ch", onCleanup);
+    const { stream } = createSSEStream('ch', onCleanup);
     const reader = stream.getReader();
 
     await reader.read(); // Read initial ping (waits for start to complete)
@@ -268,9 +268,9 @@ describe("createSSEStream", () => {
     expect(onCleanup).toHaveBeenCalled();
   });
 
-  it("cleanup function should clear heartbeat and call cleanupFn", async () => {
+  it('cleanup function should clear heartbeat and call cleanupFn', async () => {
     vi.useRealTimers();
-    const { stream, cleanup } = createSSEStream("ch");
+    const { stream, cleanup } = createSSEStream('ch');
     const reader = stream.getReader();
 
     // Read initial ping
@@ -284,12 +284,12 @@ describe("createSSEStream", () => {
     expect(mockEndFn).toHaveBeenCalled();
   });
 
-  it("should handle cleanup called before stream starts", async () => {
+  it('should handle cleanup called before stream starts', async () => {
     // Make createListenClient never resolve so cleanupFn/heartbeatId stay null
     mockConnectFn.mockReturnValue(new Promise(() => {}));
     vi.useRealTimers();
 
-    const { cleanup } = createSSEStream("ch");
+    const { cleanup } = createSSEStream('ch');
     // Call cleanup immediately — heartbeatId is null, cleanupFn is null
     await cleanup();
 

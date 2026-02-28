@@ -1,17 +1,17 @@
 // lib/search.ts
-import { prisma } from "@/lib/prisma";
+import { prisma } from '@/lib/prisma';
 
 export type SortOption =
-  | "most_downloaded"
-  | "newest"
-  | "most_followed"
-  | "recently_updated"
-  | "alphabetical";
+  | 'most_downloaded'
+  | 'newest'
+  | 'most_followed'
+  | 'recently_updated'
+  | 'alphabetical';
 
 export interface SearchParams {
   query?: string;
   tags?: string[];
-  status?: "TEMPLATE" | "RELEASED";
+  status?: 'TEMPLATE' | 'RELEASED';
   ownerId?: string;
   sort?: SortOption;
   page?: number;
@@ -20,30 +20,27 @@ export interface SearchParams {
 }
 
 type FindManyArgs = NonNullable<Parameters<typeof prisma.skill.findMany>[0]>;
-type WhereInput = FindManyArgs["where"];
-type OrderInput = FindManyArgs["orderBy"];
+type WhereInput = FindManyArgs['where'];
+type OrderInput = FindManyArgs['orderBy'];
 
 function buildWhere(params: SearchParams): WhereInput {
   const { query, tags, status, ownerId, userId } = params;
   const conditions: WhereInput[] = [];
 
-  if (status === "TEMPLATE") {
-    const templateCond: WhereInput = { status: "TEMPLATE" };
+  if (status === 'TEMPLATE') {
+    const templateCond: WhereInput = { status: 'TEMPLATE' };
     if (userId) {
       (templateCond as Record<string, unknown>).owners = { some: { userId } };
     }
     conditions.push(templateCond);
-  } else if (status === "RELEASED") {
-    conditions.push({ status: "RELEASED" });
+  } else if (status === 'RELEASED') {
+    conditions.push({ status: 'RELEASED' });
   } else if (userId) {
     conditions.push({
-      OR: [
-        { status: "RELEASED" },
-        { status: "TEMPLATE", owners: { some: { userId } } },
-      ],
+      OR: [{ status: 'RELEASED' }, { status: 'TEMPLATE', owners: { some: { userId } } }],
     });
   } else {
-    conditions.push({ status: "RELEASED" });
+    conditions.push({ status: 'RELEASED' });
   }
 
   if (ownerId) {
@@ -58,9 +55,9 @@ function buildWhere(params: SearchParams): WhereInput {
     const q = query.trim();
     conditions.push({
       OR: [
-        { name: { contains: q, mode: "insensitive" } },
-        { description: { contains: q, mode: "insensitive" } },
-        { tags: { some: { tag: { name: { contains: q, mode: "insensitive" } } } } },
+        { name: { contains: q, mode: 'insensitive' } },
+        { description: { contains: q, mode: 'insensitive' } },
+        { tags: { some: { tag: { name: { contains: q, mode: 'insensitive' } } } } },
       ],
     });
   }
@@ -71,17 +68,17 @@ function buildWhere(params: SearchParams): WhereInput {
 
 function getSortOrder(sort: SortOption): OrderInput {
   const orderMap: Record<SortOption, OrderInput> = {
-    most_downloaded: { downloadCount: "desc" },
-    newest: { createdAt: "desc" },
-    most_followed: { followers: { _count: "desc" } },
-    recently_updated: { updatedAt: "desc" },
-    alphabetical: { name: "asc" },
+    most_downloaded: { downloadCount: 'desc' },
+    newest: { createdAt: 'desc' },
+    most_followed: { followers: { _count: 'desc' } },
+    recently_updated: { updatedAt: 'desc' },
+    alphabetical: { name: 'asc' },
   };
   return orderMap[sort];
 }
 
 export async function searchSkills(params: SearchParams) {
-  const { sort = "most_downloaded", page = 1, pageSize = 12 } = params;
+  const { sort = 'most_downloaded', page = 1, pageSize = 12 } = params;
   const skip = (page - 1) * pageSize;
   const where = buildWhere(params);
   const orderBy = getSortOrder(sort);
@@ -109,4 +106,3 @@ export async function searchSkills(params: SearchParams) {
     meta: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
   };
 }
-

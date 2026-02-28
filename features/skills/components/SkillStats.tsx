@@ -1,8 +1,8 @@
 // features/skills/components/SkillStats.tsx
-"use client";
+'use client';
 
-import { useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   LineChart,
   Line,
@@ -13,8 +13,8 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
-} from "recharts";
-import { useSkillStats } from "../hooks/useSkillStats";
+} from 'recharts';
+import { useSkillStats } from '../hooks/useSkillStats';
 
 interface SkillStatsProps {
   skillId: string;
@@ -22,14 +22,14 @@ interface SkillStatsProps {
 }
 
 const EMOJI_LABELS: Record<string, string> = {
-  THUMBS_UP: "👍",
-  THUMBS_DOWN: "👎",
-  LAUGH: "😄",
-  HOORAY: "🎉",
-  CONFUSED: "😕",
-  HEART: "❤️",
-  ROCKET: "🚀",
-  EYES: "👀",
+  THUMBS_UP: '👍',
+  THUMBS_DOWN: '👎',
+  LAUGH: '😄',
+  HOORAY: '🎉',
+  CONFUSED: '😕',
+  HEART: '❤️',
+  ROCKET: '🚀',
+  EYES: '👀',
 };
 
 export function SkillStats({ skillId, followerSnapshots = [] }: Readonly<SkillStatsProps>) {
@@ -47,17 +47,17 @@ export function SkillStats({ skillId, followerSnapshots = [] }: Readonly<SkillSt
   const followerData = useMemo(
     () =>
       followerSnapshots.map((s) => ({
-        date: new Date(s.snapshotDate).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
+        date: new Date(s.snapshotDate).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
         }),
         count: s.count,
       })),
-    [followerSnapshots]
+    [followerSnapshots],
   );
 
   if (!stats) {
-    return <div className="text-center text-muted-foreground py-8">Loading stats...</div>;
+    return <div className="text-muted-foreground py-8 text-center">Loading stats...</div>;
   }
 
   return (

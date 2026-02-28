@@ -1,10 +1,10 @@
 // app/(main)/users/[id]/page.tsx
-"use client";
+'use client';
 
-import { useParams } from "next/navigation";
-import { UserProfile } from "@/features/users/components/UserProfile";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useEffect, useState } from "react";
+import { useParams } from 'next/navigation';
+import { UserProfile } from '@/features/users/components/UserProfile';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useEffect, useState } from 'react';
 
 interface UserData {
   id: string;
@@ -26,9 +26,9 @@ export default function UserPage() {
         // Use the params id since we don't have a dedicated user endpoint
         setUser({
           id: params.id,
-          name: "User",
+          name: 'User',
           avatarUrl: null,
-          role: "USER",
+          role: 'USER',
           createdAt: new Date().toISOString(),
         });
         setLoading(false);

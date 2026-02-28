@@ -1,9 +1,9 @@
 // features/search/components/SearchBar.tsx
-"use client";
+'use client';
 
-import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
+import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { Input } from '@/components/ui/input';
 
 interface SearchBarProps {
   defaultValue?: string;
@@ -11,8 +11,8 @@ interface SearchBarProps {
 }
 
 export function SearchBar({
-  defaultValue = "",
-  placeholder = "Search skills...",
+  defaultValue = '',
+  placeholder = 'Search skills...',
 }: Readonly<SearchBarProps>) {
   const router = useRouter();
   const [query, setQuery] = useState(defaultValue);

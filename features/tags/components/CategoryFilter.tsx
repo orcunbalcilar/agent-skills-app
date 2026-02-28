@@ -1,8 +1,8 @@
 // features/tags/components/CategoryFilter.tsx
-"use client";
+'use client';
 
-import { Badge } from "@/components/ui/badge";
-import { useTags } from "../hooks/useTags";
+import { Badge } from '@/components/ui/badge';
+import { useTags } from '../hooks/useTags';
 
 interface CategoryFilterProps {
   selected: string[];
@@ -25,13 +25,13 @@ export function CategoryFilter({ selected, onChange }: Readonly<CategoryFilterPr
 
   return (
     <div>
-      <p className="text-sm font-medium mb-2">Categories</p>
+      <p className="mb-2 text-sm font-medium">Categories</p>
       <div className="flex flex-wrap gap-2">
         {systemTags.map((tag) => (
           <Badge
             key={tag.id}
-            variant={selected.includes(tag.id) ? "default" : "outline"}
-            className="cursor-pointer text-sm px-3 py-1"
+            variant={selected.includes(tag.id) ? 'default' : 'outline'}
+            className="cursor-pointer px-3 py-1 text-sm"
             onClick={() => toggleTag(tag.id)}
           >
             {tag.name}

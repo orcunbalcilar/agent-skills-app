@@ -1,8 +1,8 @@
 // app/api/v1/skills/[id]/stats/route.ts
 
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { checkLimit, getIp } from "@/lib/api-helpers";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { checkLimit, getIp } from '@/lib/api-helpers';
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -27,17 +27,15 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       },
     });
 
-    if (!skill) return NextResponse.json({ error: "Not Found" }, { status: 404 });
+    if (!skill) return NextResponse.json({ error: 'Not Found' }, { status: 404 });
 
     const reactions = await prisma.skillReaction.groupBy({
-      by: ["emoji"],
+      by: ['emoji'],
       where: { skillId: id },
       _count: { emoji: true },
     });
 
-    const reactionCounts = Object.fromEntries(
-      reactions.map((r) => [r.emoji, r._count.emoji])
-    );
+    const reactionCounts = Object.fromEntries(reactions.map((r) => [r.emoji, r._count.emoji]));
 
     return NextResponse.json({
       data: {
@@ -51,6 +49,6 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

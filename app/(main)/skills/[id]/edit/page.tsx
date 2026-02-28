@@ -1,10 +1,10 @@
 // app/(main)/skills/[id]/edit/page.tsx
-"use client";
+'use client';
 
-import { useParams } from "next/navigation";
-import { SkillForm } from "@/features/skills/components/SkillForm";
-import { useSkill } from "@/features/skills/hooks/useSkill";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useParams } from 'next/navigation';
+import { SkillForm } from '@/features/skills/components/SkillForm';
+import { useSkill } from '@/features/skills/hooks/useSkill';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function EditSkillPage() {
   const params = useParams<{ id: string }>();
@@ -12,7 +12,7 @@ export default function EditSkillPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-2xl mx-auto space-y-4">
+      <div className="mx-auto max-w-2xl space-y-4">
         <Skeleton className="h-10 w-1/2" />
         <Skeleton className="h-64 w-full" />
       </div>
@@ -24,7 +24,7 @@ export default function EditSkillPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="mx-auto max-w-2xl">
       <SkillForm
         mode="edit"
         initialData={{
@@ -32,7 +32,8 @@ export default function EditSkillPage() {
           name: data.name,
           description: data.description,
           spec: (data as unknown as { spec: Record<string, unknown> }).spec ?? {},
-          files: (data as unknown as { files?: Array<{ path: string; content: string }> }).files ?? [],
+          files:
+            (data as unknown as { files?: Array<{ path: string; content: string }> }).files ?? [],
           tags: data.tags.map((t) => t.tagId),
           status: data.status,
         }}

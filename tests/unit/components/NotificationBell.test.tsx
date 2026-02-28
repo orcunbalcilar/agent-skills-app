@@ -1,12 +1,12 @@
 // tests/unit/components/NotificationBell.test.tsx
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor, act } from "@testing-library/react";
-import React from "react";
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, waitFor, act } from '@testing-library/react';
+import React from 'react';
 
 // Mock next/link
-vi.mock("next/link", () => ({
+vi.mock('next/link', () => ({
   default: ({ children, href }: { children: React.ReactNode; href: string }) =>
-    React.createElement("a", { href }, children),
+    React.createElement('a', { href }, children),
 }));
 
 // Mock EventSource
@@ -16,7 +16,7 @@ const mockEventSourceInstances: Array<{
 }> = [];
 
 vi.stubGlobal(
-  "EventSource",
+  'EventSource',
   class MockEventSource {
     onmessage: ((e: MessageEvent) => void) | null = null;
     close = vi.fn();
@@ -30,7 +30,7 @@ vi.stubGlobal(
 let mockUnreadCount = 0;
 const mockSetUnreadCount = vi.fn();
 const mockIncrementUnreadCount = vi.fn();
-vi.mock("@/stores/notification-store", () => ({
+vi.mock('@/stores/notification-store', () => ({
   useNotificationStore: () => ({
     unreadCount: mockUnreadCount,
     setUnreadCount: mockSetUnreadCount,
@@ -40,13 +40,13 @@ vi.mock("@/stores/notification-store", () => ({
 
 // Mock useNotifications
 const mockNotifications = vi.fn().mockReturnValue({ data: null });
-vi.mock("@/features/notifications/hooks/useNotifications", () => ({
+vi.mock('@/features/notifications/hooks/useNotifications', () => ({
   useNotifications: () => mockNotifications(),
 }));
 
-import { NotificationBell } from "@/features/notifications/components/NotificationBell";
+import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 
-describe("NotificationBell", () => {
+describe('NotificationBell', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockEventSourceInstances.length = 0;
@@ -55,30 +55,30 @@ describe("NotificationBell", () => {
   });
   afterEach(() => vi.restoreAllMocks());
 
-  it("should render the bell icon link", () => {
+  it('should render the bell icon link', () => {
     render(<NotificationBell />);
-    const link = screen.getByLabelText("Notifications").closest("a");
-    expect(link).toHaveAttribute("href", "/notifications");
+    const link = screen.getByLabelText('Notifications').closest('a');
+    expect(link).toHaveAttribute('href', '/notifications');
   });
 
-  it("should not show badge when unread count is 0", () => {
+  it('should not show badge when unread count is 0', () => {
     render(<NotificationBell />);
-    expect(screen.queryByText("0")).not.toBeInTheDocument();
+    expect(screen.queryByText('0')).not.toBeInTheDocument();
   });
 
-  it("should show badge when unread count > 0", () => {
+  it('should show badge when unread count > 0', () => {
     mockUnreadCount = 5;
     render(<NotificationBell />);
-    expect(screen.getByText("5")).toBeInTheDocument();
+    expect(screen.getByText('5')).toBeInTheDocument();
   });
 
-  it("should cap badge at 99+", () => {
+  it('should cap badge at 99+', () => {
     mockUnreadCount = 120;
     render(<NotificationBell />);
-    expect(screen.getByText("99+")).toBeInTheDocument();
+    expect(screen.getByText('99+')).toBeInTheDocument();
   });
 
-  it("should set unread count from fetched data", async () => {
+  it('should set unread count from fetched data', async () => {
     mockNotifications.mockReturnValue({
       data: { data: [{ read: false }, { read: true }, { read: false }] },
     });
@@ -87,19 +87,19 @@ describe("NotificationBell", () => {
     await waitFor(() => expect(mockSetUnreadCount).toHaveBeenCalledWith(2));
   });
 
-  it("should create EventSource and increment on message", async () => {
+  it('should create EventSource and increment on message', async () => {
     render(<NotificationBell />);
     await waitFor(() => expect(mockEventSourceInstances).toHaveLength(1));
 
     const es = mockEventSourceInstances[0];
     act(() => {
-      es.onmessage?.(new MessageEvent("message"));
+      es.onmessage?.(new MessageEvent('message'));
     });
 
     expect(mockIncrementUnreadCount).toHaveBeenCalled();
   });
 
-  it("should close EventSource on unmount", async () => {
+  it('should close EventSource on unmount', async () => {
     const { unmount } = render(<NotificationBell />);
     await waitFor(() => expect(mockEventSourceInstances).toHaveLength(1));
     unmount();

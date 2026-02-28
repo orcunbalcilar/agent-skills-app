@@ -1,24 +1,24 @@
 // features/notifications/components/NotificationPreferences.tsx
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { useMe } from "@/features/users/hooks/useUser";
-import { useUpdateNotificationPreferences } from "../hooks/useNotifications";
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { useMe } from '@/features/users/hooks/useUser';
+import { useUpdateNotificationPreferences } from '../hooks/useNotifications';
 
 const NOTIFICATION_TYPES = [
-  { key: "NEW_COMMENT", label: "New comments on followed skills" },
-  { key: "CHANGE_REQUEST_SUBMITTED", label: "Change requests on your skills" },
-  { key: "CHANGE_REQUEST_APPROVED", label: "Your change request approved" },
-  { key: "CHANGE_REQUEST_REJECTED", label: "Your change request rejected" },
-  { key: "NEW_FOLLOWER", label: "New followers on your skills" },
-  { key: "SKILL_RELEASED", label: "Followed skill released" },
-  { key: "SKILL_FORKED", label: "Your skill forked" },
-  { key: "OWNER_ADDED", label: "Added as owner to a skill" },
-  { key: "OWNER_REMOVED", label: "Removed as owner from a skill" },
+  { key: 'NEW_COMMENT', label: 'New comments on followed skills' },
+  { key: 'CHANGE_REQUEST_SUBMITTED', label: 'Change requests on your skills' },
+  { key: 'CHANGE_REQUEST_APPROVED', label: 'Your change request approved' },
+  { key: 'CHANGE_REQUEST_REJECTED', label: 'Your change request rejected' },
+  { key: 'NEW_FOLLOWER', label: 'New followers on your skills' },
+  { key: 'SKILL_RELEASED', label: 'Followed skill released' },
+  { key: 'SKILL_FORKED', label: 'Your skill forked' },
+  { key: 'OWNER_ADDED', label: 'Added as owner to a skill' },
+  { key: 'OWNER_REMOVED', label: 'Removed as owner from a skill' },
 ] as const;
 
 export function NotificationPreferences() {
@@ -59,7 +59,7 @@ export function NotificationPreferences() {
           </div>
         ))}
         <Button onClick={handleSave} disabled={update.isPending}>
-          {update.isPending ? "Saving..." : "Save Preferences"}
+          {update.isPending ? 'Saving...' : 'Save Preferences'}
         </Button>
       </CardContent>
     </Card>

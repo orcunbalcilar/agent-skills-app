@@ -1,16 +1,16 @@
 // features/skills/components/VersionHistory.tsx
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useSkillVersions, type VersionSummary } from "../hooks/useSkillVersions";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { useState } from 'react';
+import { useSkillVersions, type VersionSummary } from '../hooks/useSkillVersions';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 function getCompareLabel(compareFrom: number | null, version: number): string {
-  if (compareFrom === null) return "Compare";
-  if (compareFrom === version) return "Selected";
-  return "Compare with";
+  if (compareFrom === null) return 'Compare';
+  if (compareFrom === version) return 'Selected';
+  return 'Compare with';
 }
 
 interface VersionHistoryProps {
@@ -31,11 +31,11 @@ export function VersionHistory({
   const { data, isLoading } = useSkillVersions(skillId, page);
 
   if (isLoading) {
-    return <p className="text-sm text-muted-foreground">Loading version history…</p>;
+    return <p className="text-muted-foreground text-sm">Loading version history…</p>;
   }
 
   if (!data || data.data.length === 0) {
-    return <p className="text-sm text-muted-foreground">No version history yet.</p>;
+    return <p className="text-muted-foreground text-sm">No version history yet.</p>;
   }
 
   const handleCompareClick = (v: VersionSummary) => {
@@ -62,10 +62,10 @@ export function VersionHistory({
         {data.data.map((v) => (
           <div
             key={v.id}
-            className="flex items-center gap-3 p-3 border rounded-md hover:bg-muted/50 transition-colors"
+            className="hover:bg-muted/50 flex items-center gap-3 rounded-md border p-3 transition-colors"
           >
             <Badge
-              variant={v.version === currentVersion ? "default" : "outline"}
+              variant={v.version === currentVersion ? 'default' : 'outline'}
               className="shrink-0"
             >
               v{v.version}
@@ -78,25 +78,19 @@ export function VersionHistory({
               </Avatar>
             )}
 
-            <div className="flex-1 min-w-0">
-              <p className="text-sm truncate">
-                {v.message || "No message"}
-              </p>
-              <p className="text-xs text-muted-foreground">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm">{v.message || 'No message'}</p>
+              <p className="text-muted-foreground text-xs">
                 {new Date(v.createdAt).toLocaleString()}
               </p>
             </div>
 
             <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onSelectVersion(v.version)}
-              >
+              <Button variant="ghost" size="sm" onClick={() => onSelectVersion(v.version)}>
                 View
               </Button>
               <Button
-                variant={compareFrom === v.version ? "secondary" : "ghost"}
+                variant={compareFrom === v.version ? 'secondary' : 'ghost'}
                 size="sm"
                 onClick={() => handleCompareClick(v)}
               >
@@ -117,7 +111,7 @@ export function VersionHistory({
           >
             Previous
           </Button>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-muted-foreground text-xs">
             Page {page} of {data.meta.totalPages}
           </span>
           <Button

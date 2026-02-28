@@ -1,14 +1,14 @@
-import { prisma } from "@/lib/prisma";
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import NextAuth from "next-auth";
-import authConfig from "../auth.config";
+import { prisma } from '@/lib/prisma';
+import { PrismaAdapter } from '@auth/prisma-adapter';
+import NextAuth from 'next-auth';
+import authConfig from '../auth.config';
 
-type Role = "ADMIN" | "USER";
+type Role = 'ADMIN' | 'USER';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "jwt" },
+  session: { strategy: 'jwt' },
   callbacks: {
     async session({ session, token }) {
       if (session.user && token.sub) {
@@ -31,7 +31,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token;
     },
     async signIn({ user, account }) {
-      if (account?.provider === "github" && user.email) {
+      if (account?.provider === 'github' && user.email) {
         const existing = await prisma.user.findUnique({
           where: { email: user.email },
         });
@@ -48,9 +48,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             data: {
               githubId: String(account.providerAccountId),
               email: user.email,
-              name: user.name ?? "Unknown",
+              name: user.name ?? 'Unknown',
               avatarUrl: user.image ?? null,
-              role: "USER",
+              role: 'USER',
             },
           });
         }
@@ -60,7 +60,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
 });
 
-declare module "next-auth" {
+declare module 'next-auth' {
   interface Session {
     user: {
       id: string;

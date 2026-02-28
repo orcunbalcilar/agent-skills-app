@@ -1,7 +1,7 @@
 // features/skills/hooks/useSkillVersions.ts
-"use client";
+'use client';
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from '@tanstack/react-query';
 
 interface VersionSummary {
   id: string;
@@ -24,19 +24,19 @@ interface PaginatedVersions {
 
 async function fetchVersions(skillId: string, page: number): Promise<PaginatedVersions> {
   const res = await fetch(`/api/v1/skills/${skillId}/versions?page=${page}&pageSize=20`);
-  if (!res.ok) throw new Error("Failed to fetch versions");
+  if (!res.ok) throw new Error('Failed to fetch versions');
   return res.json() as Promise<PaginatedVersions>;
 }
 
 async function fetchVersion(skillId: string, version: number): Promise<VersionDetail> {
   const res = await fetch(`/api/v1/skills/${skillId}/versions/${version}`);
-  if (!res.ok) throw new Error("Failed to fetch version");
+  if (!res.ok) throw new Error('Failed to fetch version');
   return res.json() as Promise<VersionDetail>;
 }
 
 export function useSkillVersions(skillId: string, page = 1) {
   return useQuery({
-    queryKey: ["skill-versions", skillId, page],
+    queryKey: ['skill-versions', skillId, page],
     queryFn: () => fetchVersions(skillId, page),
     staleTime: 30_000,
     enabled: Boolean(skillId),
@@ -45,7 +45,7 @@ export function useSkillVersions(skillId: string, page = 1) {
 
 export function useSkillVersion(skillId: string, version: number | null) {
   return useQuery({
-    queryKey: ["skill-version", skillId, version],
+    queryKey: ['skill-version', skillId, version],
     queryFn: () => fetchVersion(skillId, version!),
     staleTime: 60_000,
     enabled: Boolean(skillId) && version !== null,

@@ -1,23 +1,23 @@
 // tests/e2e/skills.search.spec.ts
-import { test, expect } from "@playwright/test";
+import { test, expect } from '@playwright/test';
 
-test.describe("Skill search and filtering", () => {
-  test("should search skills by text", async ({ page }) => {
-    await page.goto("/skills");
+test.describe('Skill search and filtering', () => {
+  test('should search skills by text', async ({ page }) => {
+    await page.goto('/skills');
     // Use the header search input (type=search with aria-label)
-    await page.getByRole("searchbox", { name: /search skills/i }).fill("test");
-    await page.keyboard.press("Enter");
+    await page.getByRole('searchbox', { name: /search skills/i }).fill('test');
+    await page.keyboard.press('Enter');
 
     // Results should filter
     await page.waitForTimeout(500);
     // We just verify the page doesn't error
-    await expect(page.getByRole("heading", { name: /discover skills/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /discover skills/i })).toBeVisible();
   });
 
-  test("should filter by tag", async ({ page }) => {
-    await page.goto("/skills");
+  test('should filter by tag', async ({ page }) => {
+    await page.goto('/skills');
     // Click on a tag filter
-    const tagFilter = page.getByRole("button", { name: /java/i }).first();
+    const tagFilter = page.getByRole('button', { name: /java/i }).first();
     if (await tagFilter.isVisible()) {
       await tagFilter.click();
       await page.waitForTimeout(500);
@@ -25,9 +25,9 @@ test.describe("Skill search and filtering", () => {
     await expect(page).toHaveURL(/\//);
   });
 
-  test("should sort by different options", async ({ page }) => {
-    await page.goto("/skills");
-    const sortSelect = page.getByRole("combobox").first();
+  test('should sort by different options', async ({ page }) => {
+    await page.goto('/skills');
+    const sortSelect = page.getByRole('combobox').first();
     if (await sortSelect.isVisible()) {
       await sortSelect.click();
       await page.getByText(/newest/i).click();
@@ -36,9 +36,9 @@ test.describe("Skill search and filtering", () => {
     await expect(page).toHaveURL(/\//);
   });
 
-  test("should paginate results", async ({ page }) => {
-    await page.goto("/skills");
-    const nextBtn = page.getByRole("button", { name: /next/i });
+  test('should paginate results', async ({ page }) => {
+    await page.goto('/skills');
+    const nextBtn = page.getByRole('button', { name: /next/i });
     if (await nextBtn.isVisible()) {
       await nextBtn.click();
       await page.waitForTimeout(500);

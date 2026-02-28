@@ -1,21 +1,27 @@
 // features/skills/components/SkillForm.tsx
-"use client";
+'use client';
 
-import { useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert } from "@/components/ui/alert";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { TagSelector } from "@/features/tags/components/TagSelector";
-import { FileTree, type SkillFile } from "./FileTree";
-import { SkillCodeEditor } from "./SkillCodeEditor";
-import { useCreateSkill, useUpdateSkill, useReleaseSkill } from "../hooks/useSkillMutations";
+import { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert } from '@/components/ui/alert';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { TagSelector } from '@/features/tags/components/TagSelector';
+import { FileTree, type SkillFile } from './FileTree';
+import { SkillCodeEditor } from './SkillCodeEditor';
+import { useCreateSkill, useUpdateSkill, useReleaseSkill } from '../hooks/useSkillMutations';
 
 interface SkillFormProps {
-  mode: "create" | "edit";
+  mode: 'create' | 'edit';
   initialData?: {
     id: string;
     name: string;
@@ -39,86 +45,81 @@ export function SkillForm({ mode, initialData }: Readonly<SkillFormProps>) {
   const [error, setError] = useState<string | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [parsedSpec, setParsedSpec] = useState<Record<string, unknown> | null>(
-    initialData?.spec ?? null
+    initialData?.spec ?? null,
   );
   const [files, setFiles] = useState<SkillFile[]>(initialData?.files ?? []);
   const [selectedPath, setSelectedPath] = useState<string | null>(
-    initialData?.files?.[0]?.path ?? null
+    initialData?.files?.[0]?.path ?? null,
   );
-  const [editMessage, setEditMessage] = useState("");
+  const [editMessage, setEditMessage] = useState('');
   const [releaseDialogOpen, setReleaseDialogOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   const handleFileChange = useCallback((path: string, newContent: string) => {
-    setFiles((prev) =>
-      prev.map((f) => (f.path === path ? { ...f, content: newContent } : f))
-    );
+    setFiles((prev) => prev.map((f) => (f.path === path ? { ...f, content: newContent } : f)));
   }, []);
 
   const selectedFile = files.find((f) => f.path === selectedPath);
 
-  const handleUpload = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
+  const handleUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-      if (file.size > MAX_ZIP_BYTES) {
-        setError("Zip file exceeds 10 MB limit");
-        return;
-      }
+    if (file.size > MAX_ZIP_BYTES) {
+      setError('Zip file exceeds 10 MB limit');
+      return;
+    }
 
-      if (!file.name.endsWith(".zip")) {
-        setError("Please upload a .zip file containing your skill folder");
-        return;
-      }
+    if (!file.name.endsWith('.zip')) {
+      setError('Please upload a .zip file containing your skill folder');
+      return;
+    }
 
-      setUploading(true);
-      setError(null);
+    setUploading(true);
+    setError(null);
 
-      try {
-        const form = new FormData();
-        form.append("file", file);
+    try {
+      const form = new FormData();
+      form.append('file', file);
 
-        const res = await fetch("/api/v1/upload", { method: "POST", body: form });
-        const json = await res.json() as {
-          data?: Record<string, unknown>;
-          files?: SkillFile[];
-          error?: string;
-          details?: string;
-        };
+      const res = await fetch('/api/v1/upload', { method: 'POST', body: form });
+      const json = (await res.json()) as {
+        data?: Record<string, unknown>;
+        files?: SkillFile[];
+        error?: string;
+        details?: string;
+      };
 
-        if (!res.ok) {
-          setError(json.details ?? json.error ?? "Upload validation failed");
-          setParsedSpec(null);
-          setUploadedFile(null);
-          setFiles([]);
-          return;
-        }
-
-        setParsedSpec(json.data ?? null);
-        setUploadedFile(file);
-        setFiles(json.files ?? []);
-        if (json.files?.length) {
-          setSelectedPath(json.files[0].path);
-        }
-      } catch {
-        setError("Failed to upload file");
+      if (!res.ok) {
+        setError(json.details ?? json.error ?? 'Upload validation failed');
         setParsedSpec(null);
         setUploadedFile(null);
         setFiles([]);
-      } finally {
-        setUploading(false);
+        return;
       }
-    },
-    []
-  );
+
+      setParsedSpec(json.data ?? null);
+      setUploadedFile(file);
+      setFiles(json.files ?? []);
+      if (json.files?.length) {
+        setSelectedPath(json.files[0].path);
+      }
+    } catch {
+      setError('Failed to upload file');
+      setParsedSpec(null);
+      setUploadedFile(null);
+      setFiles([]);
+    } finally {
+      setUploading(false);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
 
     if (!parsedSpec) {
-      setError("Please upload a valid skill folder (.zip) first");
+      setError('Please upload a valid skill folder (.zip) first');
       return;
     }
 
@@ -126,7 +127,7 @@ export function SkillForm({ mode, initialData }: Readonly<SkillFormProps>) {
     const description = parsedSpec.description as string;
 
     try {
-      if (mode === "create") {
+      if (mode === 'create') {
         const result = await createSkill.mutateAsync({
           name,
           description,
@@ -149,7 +150,7 @@ export function SkillForm({ mode, initialData }: Readonly<SkillFormProps>) {
         router.push(`/skills/${initialData.id}`);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save skill");
+      setError(err instanceof Error ? err.message : 'Failed to save skill');
     }
   };
 
@@ -160,7 +161,7 @@ export function SkillForm({ mode, initialData }: Readonly<SkillFormProps>) {
       setReleaseDialogOpen(false);
       router.push(`/skills/${initialData.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to release skill");
+      setError(err instanceof Error ? err.message : 'Failed to release skill');
     }
   };
 
@@ -170,7 +171,7 @@ export function SkillForm({ mode, initialData }: Readonly<SkillFormProps>) {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>{mode === "create" ? "Create New Skill" : "Edit Skill"}</CardTitle>
+          <CardTitle>{mode === 'create' ? 'Create New Skill' : 'Edit Skill'}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -182,12 +183,14 @@ export function SkillForm({ mode, initialData }: Readonly<SkillFormProps>) {
 
             <div className="space-y-2">
               <Label htmlFor="skill-zip">
-                {mode === "edit" ? "Re-upload Skill Folder (.zip) or edit files below" : "Upload Skill Folder (.zip)"}
+                {mode === 'edit'
+                  ? 'Re-upload Skill Folder (.zip) or edit files below'
+                  : 'Upload Skill Folder (.zip)'}
               </Label>
-              <p className="text-xs text-muted-foreground">
-                Upload a zip file containing your skill folder with a SKILL.md file.
-                The SKILL.md must have valid YAML frontmatter with name and description.
-                Optional dirs: scripts/, references/, assets/
+              <p className="text-muted-foreground text-xs">
+                Upload a zip file containing your skill folder with a SKILL.md file. The SKILL.md
+                must have valid YAML frontmatter with name and description. Optional dirs: scripts/,
+                references/, assets/
               </p>
               <Input
                 id="skill-zip"
@@ -196,16 +199,26 @@ export function SkillForm({ mode, initialData }: Readonly<SkillFormProps>) {
                 onChange={handleUpload}
                 disabled={uploading}
               />
-              {uploading && <p className="text-xs text-muted-foreground">Validating skill folder...</p>}
-              {(uploadedFile || mode === "edit") && parsedSpec && (
-                <div className="rounded border p-3 text-sm space-y-1">
-                  <p><strong>Name:</strong> {parsedSpec.name as string}</p>
-                  <p><strong>Description:</strong> {parsedSpec.description as string}</p>
-                  {typeof parsedSpec.license === "string" && (
-                    <p><strong>License:</strong> {parsedSpec.license}</p>
+              {uploading && (
+                <p className="text-muted-foreground text-xs">Validating skill folder...</p>
+              )}
+              {(uploadedFile || mode === 'edit') && parsedSpec && (
+                <div className="space-y-1 rounded border p-3 text-sm">
+                  <p>
+                    <strong>Name:</strong> {parsedSpec.name as string}
+                  </p>
+                  <p>
+                    <strong>Description:</strong> {parsedSpec.description as string}
+                  </p>
+                  {typeof parsedSpec.license === 'string' && (
+                    <p>
+                      <strong>License:</strong> {parsedSpec.license}
+                    </p>
                   )}
-                  {typeof parsedSpec.compatibility === "string" && (
-                    <p><strong>Compatibility:</strong> {parsedSpec.compatibility}</p>
+                  {typeof parsedSpec.compatibility === 'string' && (
+                    <p>
+                      <strong>Compatibility:</strong> {parsedSpec.compatibility}
+                    </p>
                   )}
                 </div>
               )}
@@ -223,7 +236,7 @@ export function SkillForm({ mode, initialData }: Readonly<SkillFormProps>) {
                       onSelect={setSelectedPath}
                     />
                   </div>
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-0 flex-1">
                     {selectedFile && (
                       <SkillCodeEditor
                         path={selectedFile.path}
@@ -236,7 +249,7 @@ export function SkillForm({ mode, initialData }: Readonly<SkillFormProps>) {
               </div>
             )}
 
-            {mode === "edit" && (
+            {mode === 'edit' && (
               <div className="space-y-2">
                 <Label htmlFor="edit-message">Edit Message (optional)</Label>
                 <Input
@@ -255,9 +268,9 @@ export function SkillForm({ mode, initialData }: Readonly<SkillFormProps>) {
 
             <div className="flex gap-2">
               <Button type="submit" disabled={isPending || !parsedSpec || uploading}>
-                {isPending ? "Saving..." : "Save as Template"}
+                {isPending ? 'Saving...' : 'Save as Template'}
               </Button>
-              {mode === "edit" && initialData?.status === "TEMPLATE" && (
+              {mode === 'edit' && initialData?.status === 'TEMPLATE' && (
                 <Button
                   type="button"
                   variant="secondary"
@@ -276,7 +289,7 @@ export function SkillForm({ mode, initialData }: Readonly<SkillFormProps>) {
           <DialogHeader>
             <DialogTitle>Release Skill</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Releasing is irreversible. This skill will be publicly visible as v1. Proceed?
           </p>
           <DialogFooter>
@@ -284,7 +297,7 @@ export function SkillForm({ mode, initialData }: Readonly<SkillFormProps>) {
               Cancel
             </Button>
             <Button onClick={handleRelease} disabled={releaseSkill.isPending}>
-              {releaseSkill.isPending ? "Releasing..." : "Confirm Release"}
+              {releaseSkill.isPending ? 'Releasing...' : 'Confirm Release'}
             </Button>
           </DialogFooter>
         </DialogContent>

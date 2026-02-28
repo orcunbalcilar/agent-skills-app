@@ -1,13 +1,13 @@
 // features/notifications/components/NotificationBell.tsx
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Bell } from "lucide-react";
-import { useNotificationStore } from "@/stores/notification-store";
-import { useNotifications } from "../hooks/useNotifications";
+import { useEffect } from 'react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Bell } from 'lucide-react';
+import { useNotificationStore } from '@/stores/notification-store';
+import { useNotifications } from '../hooks/useNotifications';
 
 export function NotificationBell() {
   const { unreadCount, setUnreadCount, incrementUnreadCount } = useNotificationStore();
@@ -21,7 +21,7 @@ export function NotificationBell() {
   }, [data, setUnreadCount]);
 
   useEffect(() => {
-    const es = new EventSource("/api/v1/sse/notifications");
+    const es = new EventSource('/api/v1/sse/notifications');
     es.onmessage = () => {
       incrementUnreadCount();
     };
@@ -35,9 +35,9 @@ export function NotificationBell() {
         {unreadCount > 0 && (
           <Badge
             variant="destructive"
-            className="absolute -top-1 -right-1 size-5 p-0 text-xs flex items-center justify-center"
+            className="absolute -top-1 -right-1 flex size-5 items-center justify-center p-0 text-xs"
           >
-            {unreadCount > 99 ? "99+" : unreadCount}
+            {unreadCount > 99 ? '99+' : unreadCount}
           </Badge>
         )}
       </Link>

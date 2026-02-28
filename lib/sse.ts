@@ -1,11 +1,11 @@
 // lib/sse.ts
-import { Client } from "pg";
+import { Client } from 'pg';
 
 const notifyClient = new Client({ connectionString: process.env.DATABASE_URL });
 let notifyClientConnected = false;
 
 function sanitizeChannel(channel: string): string {
-  return channel.replaceAll(/[^a-z0-9_]/gi, "_");
+  return channel.replaceAll(/[^a-z0-9_]/gi, '_');
 }
 
 async function getNotifyClient(): Promise<Client> {
@@ -20,7 +20,7 @@ export async function pgNotify(channel: string, payload: string): Promise<void> 
   try {
     const client = await getNotifyClient();
     const safe = sanitizeChannel(channel);
-    await client.query("SELECT pg_notify($1, $2)", [safe, payload]);
+    await client.query('SELECT pg_notify($1, $2)', [safe, payload]);
   } catch {
     // SSE notifications are best-effort
   }
@@ -28,14 +28,14 @@ export async function pgNotify(channel: string, payload: string): Promise<void> 
 
 export async function createListenClient(
   channel: string,
-  onNotify: (payload: string) => void
+  onNotify: (payload: string) => void,
 ): Promise<() => Promise<void>> {
   const client = new Client({ connectionString: process.env.DATABASE_URL });
   await client.connect();
   const safe = sanitizeChannel(channel);
   await client.query(`LISTEN "${safe}"`);
 
-  client.on("notification", (msg) => {
+  client.on('notification', (msg) => {
     if (msg.payload) {
       onNotify(msg.payload);
     }
@@ -49,7 +49,7 @@ export async function createListenClient(
 
 export function createSSEStream(
   channel: string,
-  onCleanup?: () => void
+  onCleanup?: () => void,
 ): { stream: ReadableStream; cleanup: () => Promise<void> } {
   const encoder = new TextEncoder();
   let cleanupFn: (() => Promise<void>) | null = null;
@@ -65,11 +65,11 @@ export function createSSEStream(
         }
       });
 
-      controller.enqueue(encoder.encode(": ping\n\n"));
+      controller.enqueue(encoder.encode(': ping\n\n'));
 
       heartbeatId = setInterval(() => {
         try {
-          controller.enqueue(encoder.encode(": ping\n\n"));
+          controller.enqueue(encoder.encode(': ping\n\n'));
         } catch {
           if (heartbeatId) clearInterval(heartbeatId);
         }

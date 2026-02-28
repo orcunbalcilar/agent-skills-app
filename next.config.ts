@@ -1,12 +1,12 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  output: 'standalone',
   reactCompiler: true,
   reactStrictMode: true,
   cacheComponents: true,
   experimental: {
-    serverActions: { bodySizeLimit: "512kb" },
+    serverActions: { bodySizeLimit: '512kb' },
   },
 };
 

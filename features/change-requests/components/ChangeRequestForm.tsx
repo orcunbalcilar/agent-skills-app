@@ -1,13 +1,19 @@
 // features/change-requests/components/ChangeRequestForm.tsx
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { useSubmitChangeRequest } from "../hooks/useChangeRequests";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { useSubmitChangeRequest } from '../hooks/useChangeRequests';
 
 interface ChangeRequestFormProps {
   skillId: string;
@@ -20,8 +26,8 @@ export function ChangeRequestForm({
   open,
   onOpenChange,
 }: Readonly<ChangeRequestFormProps>) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const submit = useSubmitChangeRequest(skillId);
 
   const handleSubmit = () => {
@@ -30,11 +36,11 @@ export function ChangeRequestForm({
       { title: title.trim(), description: description.trim() },
       {
         onSuccess: () => {
-          setTitle("");
-          setDescription("");
+          setTitle('');
+          setDescription('');
           onOpenChange(false);
         },
-      }
+      },
     );
   };
 
@@ -75,7 +81,7 @@ export function ChangeRequestForm({
             onClick={handleSubmit}
             disabled={submit.isPending || !title.trim() || !description.trim()}
           >
-            {submit.isPending ? "Submitting..." : "Submit"}
+            {submit.isPending ? 'Submitting...' : 'Submit'}
           </Button>
         </DialogFooter>
       </DialogContent>

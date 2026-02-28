@@ -1,7 +1,7 @@
 // components/shared/Pagination.tsx
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 
 interface PaginationProps {
   page: number;
@@ -34,10 +34,10 @@ export function Pagination({ page, totalPages, onPageChange }: Readonly<Paginati
       {pages.map((p) => (
         <Button
           key={p}
-          variant={p === page ? "default" : "outline"}
+          variant={p === page ? 'default' : 'outline'}
           size="sm"
           onClick={() => onPageChange(p)}
-          aria-current={p === page ? "page" : undefined}
+          aria-current={p === page ? 'page' : undefined}
         >
           {p}
         </Button>

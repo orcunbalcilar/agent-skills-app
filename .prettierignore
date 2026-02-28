@@ -1,0 +1,42 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Build outputs
+.next
+.out
+dist
+build
+coverage
+playwright-report
+test-results
+
+# Lock files
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Environment variables
+.env
+.env.*
+
+# IDE
+.vscode
+.idea
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+
+# Prisma
+prisma/migrations
+
+# Generated files
+*.tsbuildinfo
+next-env.d.ts
+
+# Public assets
+public

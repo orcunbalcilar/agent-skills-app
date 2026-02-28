@@ -1,18 +1,18 @@
 // lib/notifications.ts
-import { prisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
-import { pgNotify } from "@/lib/sse";
+import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
+import { pgNotify } from '@/lib/sse';
 
 export type NotificationType =
-  | "NEW_COMMENT"
-  | "CHANGE_REQUEST_SUBMITTED"
-  | "CHANGE_REQUEST_APPROVED"
-  | "CHANGE_REQUEST_REJECTED"
-  | "NEW_FOLLOWER"
-  | "SKILL_RELEASED"
-  | "SKILL_FORKED"
-  | "OWNER_ADDED"
-  | "OWNER_REMOVED";
+  | 'NEW_COMMENT'
+  | 'CHANGE_REQUEST_SUBMITTED'
+  | 'CHANGE_REQUEST_APPROVED'
+  | 'CHANGE_REQUEST_REJECTED'
+  | 'NEW_FOLLOWER'
+  | 'SKILL_RELEASED'
+  | 'SKILL_FORKED'
+  | 'OWNER_ADDED'
+  | 'OWNER_REMOVED';
 
 export interface NotificationPayload {
   skillId?: string;
@@ -27,7 +27,7 @@ export interface NotificationPayload {
 export async function dispatchNotification(
   type: NotificationType,
   recipientIds: string[],
-  payload: NotificationPayload
+  payload: NotificationPayload,
 ): Promise<void> {
   if (recipientIds.length === 0) return;
 
@@ -55,8 +55,8 @@ export async function dispatchNotification(
           payload: payload as unknown as Prisma.InputJsonValue,
           skillId: payload.skillId ?? null,
         },
-      })
-    )
+      }),
+    ),
   );
 
   // Fire NOTIFY for each recipient via pg
@@ -64,7 +64,7 @@ export async function dispatchNotification(
     (notifications as { userId: string }[]).map((n) =>
       pgNotify(`notifications:${n.userId}`, JSON.stringify(n)).catch(() => {
         // Non-fatal: SSE is best-effort
-      })
-    )
+      }),
+    ),
   );
 }

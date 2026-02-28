@@ -1,9 +1,9 @@
 // tests/unit/hooks/use-skill-versions.test.tsx
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { ReactNode } from "react";
-import { useSkillVersions, useSkillVersion } from "@/features/skills/hooks/useSkillVersions";
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { renderHook, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
+import { useSkillVersions, useSkillVersion } from '@/features/skills/hooks/useSkillVersions';
 
 const fetchMock = vi.fn();
 globalThis.fetch = fetchMock;
@@ -17,7 +17,7 @@ function createWrapper() {
   };
 }
 
-describe("useSkillVersions", () => {
+describe('useSkillVersions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -26,40 +26,48 @@ describe("useSkillVersions", () => {
     vi.restoreAllMocks();
   });
 
-  it("should fetch paginated versions", async () => {
+  it('should fetch paginated versions', async () => {
     const versions = [
-      { id: "v1", skillId: "s1", version: 2, message: "update", createdAt: "2025-01-01T00:00:00Z", editedBy: { id: "u1", name: "User", avatarUrl: null } },
+      {
+        id: 'v1',
+        skillId: 's1',
+        version: 2,
+        message: 'update',
+        createdAt: '2025-01-01T00:00:00Z',
+        editedBy: { id: 'u1', name: 'User', avatarUrl: null },
+      },
     ];
     fetchMock.mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve({
-        data: versions,
-        meta: { page: 1, pageSize: 20, total: 1, totalPages: 1 },
-      }),
+      json: () =>
+        Promise.resolve({
+          data: versions,
+          meta: { page: 1, pageSize: 20, total: 1, totalPages: 1 },
+        }),
     });
 
-    const { result } = renderHook(() => useSkillVersions("s1", 1), {
+    const { result } = renderHook(() => useSkillVersions('s1', 1), {
       wrapper: createWrapper(),
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data?.data).toHaveLength(1);
     expect(result.current.data?.data[0].version).toBe(2);
-    expect(fetchMock).toHaveBeenCalledWith("/api/v1/skills/s1/versions?page=1&pageSize=20");
+    expect(fetchMock).toHaveBeenCalledWith('/api/v1/skills/s1/versions?page=1&pageSize=20');
   });
 
-  it("should handle error", async () => {
+  it('should handle error', async () => {
     fetchMock.mockResolvedValueOnce({ ok: false, status: 500 });
 
-    const { result } = renderHook(() => useSkillVersions("s1"), {
+    const { result } = renderHook(() => useSkillVersions('s1'), {
       wrapper: createWrapper(),
     });
 
     await waitFor(() => expect(result.current.isError).toBe(true));
   });
 
-  it("should not fetch when skillId is empty", async () => {
-    const { result } = renderHook(() => useSkillVersions(""), {
+  it('should not fetch when skillId is empty', async () => {
+    const { result } = renderHook(() => useSkillVersions(''), {
       wrapper: createWrapper(),
     });
 
@@ -69,7 +77,7 @@ describe("useSkillVersions", () => {
   });
 });
 
-describe("useSkillVersion", () => {
+describe('useSkillVersion', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -78,34 +86,34 @@ describe("useSkillVersion", () => {
     vi.restoreAllMocks();
   });
 
-  it("should fetch a single version", async () => {
+  it('should fetch a single version', async () => {
     const versionDetail = {
-      id: "v1",
-      skillId: "s1",
+      id: 'v1',
+      skillId: 's1',
       version: 1,
-      spec: { name: "test" },
-      files: [{ path: "SKILL.md", content: "# Skill" }],
-      message: "initial",
-      createdAt: "2025-01-01T00:00:00Z",
-      editedBy: { id: "u1", name: "User", avatarUrl: null },
+      spec: { name: 'test' },
+      files: [{ path: 'SKILL.md', content: '# Skill' }],
+      message: 'initial',
+      createdAt: '2025-01-01T00:00:00Z',
+      editedBy: { id: 'u1', name: 'User', avatarUrl: null },
     };
     fetchMock.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve(versionDetail),
     });
 
-    const { result } = renderHook(() => useSkillVersion("s1", 1), {
+    const { result } = renderHook(() => useSkillVersion('s1', 1), {
       wrapper: createWrapper(),
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data?.spec).toEqual({ name: "test" });
+    expect(result.current.data?.spec).toEqual({ name: 'test' });
     expect(result.current.data?.files).toHaveLength(1);
-    expect(fetchMock).toHaveBeenCalledWith("/api/v1/skills/s1/versions/1");
+    expect(fetchMock).toHaveBeenCalledWith('/api/v1/skills/s1/versions/1');
   });
 
-  it("should not fetch when version is null", async () => {
-    const { result } = renderHook(() => useSkillVersion("s1", null), {
+  it('should not fetch when version is null', async () => {
+    const { result } = renderHook(() => useSkillVersion('s1', null), {
       wrapper: createWrapper(),
     });
 

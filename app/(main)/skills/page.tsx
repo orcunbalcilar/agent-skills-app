@@ -1,30 +1,36 @@
 // app/(main)/skills/page.tsx
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { SkillCard } from "@/features/skills/components/SkillCard";
-import { SearchBar } from "@/features/search/components/SearchBar";
-import { TagSelector } from "@/features/tags/components/TagSelector";
-import { CategoryFilter } from "@/features/tags/components/CategoryFilter";
-import { Pagination } from "@/components/shared/Pagination";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useSkills } from "@/features/skills/hooks/useSkills";
+import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { SkillCard } from '@/features/skills/components/SkillCard';
+import { SearchBar } from '@/features/search/components/SearchBar';
+import { TagSelector } from '@/features/tags/components/TagSelector';
+import { CategoryFilter } from '@/features/tags/components/CategoryFilter';
+import { Pagination } from '@/components/shared/Pagination';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useSkills } from '@/features/skills/hooks/useSkills';
 
 const SORT_OPTIONS = [
-  { value: "most_downloaded", label: "Most Downloaded" },
-  { value: "newest", label: "Newest" },
-  { value: "most_followed", label: "Most Followed" },
-  { value: "recently_updated", label: "Recently Updated" },
-  { value: "alphabetical", label: "Alphabetical" },
+  { value: 'most_downloaded', label: 'Most Downloaded' },
+  { value: 'newest', label: 'Newest' },
+  { value: 'most_followed', label: 'Most Followed' },
+  { value: 'recently_updated', label: 'Recently Updated' },
+  { value: 'alphabetical', label: 'Alphabetical' },
 ] as const;
 
 export default function SkillsPage() {
   const searchParams = useSearchParams();
-  const initialQuery = searchParams.get("q") ?? "";
+  const initialQuery = searchParams.get('q') ?? '';
 
   const [page, setPage] = useState(1);
-  const [sort, setSort] = useState("most_downloaded");
+  const [sort, setSort] = useState('most_downloaded');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const { data, isLoading } = useSkills({
@@ -37,7 +43,7 @@ export default function SkillsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold gradient-text text-balance">Discover Skills</h1>
+      <h1 className="gradient-text text-2xl font-bold text-balance">Discover Skills</h1>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
         <div className="flex-1">
@@ -61,7 +67,7 @@ export default function SkillsPage() {
       <CategoryFilter selected={selectedTags} onChange={setSelectedTags} />
 
       <div>
-        <p className="text-sm text-muted-foreground mb-2">All tags:</p>
+        <p className="text-muted-foreground mb-2 text-sm">All tags:</p>
         <TagSelector selected={selectedTags} onChange={setSelectedTags} max={10} />
       </div>
 
@@ -76,15 +82,11 @@ export default function SkillsPage() {
           </div>
 
           {data?.data.length === 0 && (
-            <p className="text-center text-muted-foreground py-12 text-sm">No skills found.</p>
+            <p className="text-muted-foreground py-12 text-center text-sm">No skills found.</p>
           )}
 
           {data?.meta && data.meta.totalPages > 1 && (
-            <Pagination
-              page={page}
-              totalPages={data.meta.totalPages}
-              onPageChange={setPage}
-            />
+            <Pagination page={page} totalPages={data.meta.totalPages} onPageChange={setPage} />
           )}
         </>
       )}

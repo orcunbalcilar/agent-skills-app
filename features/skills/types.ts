@@ -35,7 +35,7 @@ export interface SkillSummary {
   id: string;
   name: string;
   description: string;
-  status: "TEMPLATE" | "RELEASED";
+  status: 'TEMPLATE' | 'RELEASED';
   version: number;
   forkedFromId: string | null;
   forkCount: number;

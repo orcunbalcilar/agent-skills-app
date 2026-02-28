@@ -4,19 +4,26 @@
 // migration (20260228000000_seed_system_tags) so they exist in all
 // environments. This file only creates sample data for local development.
 //
-import { PrismaClient, Role, SkillStatus, ChangeRequestStatus, NotificationType, ReactionEmoji } from "@prisma/client";
-import { subDays } from "date-fns";
-import { SYSTEM_TAG_NAMES } from "../lib/constants";
+import {
+  PrismaClient,
+  Role,
+  SkillStatus,
+  ChangeRequestStatus,
+  NotificationType,
+  ReactionEmoji,
+} from '@prisma/client';
+import { subDays } from 'date-fns';
+import { SYSTEM_TAG_NAMES } from '../lib/constants';
 
-if (process.env.NODE_ENV === "production") {
-  console.error("Seed script must not run in production. Aborting.");
+if (process.env.NODE_ENV === 'production') {
+  console.error('Seed script must not run in production. Aborting.');
   process.exit(1);
 }
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("Seeding development database...");
+  console.log('Seeding development database...');
 
   // ── Tags (upsert to ensure they exist locally) ─────────────────────────────
   const tagRecords = await Promise.all(
@@ -25,33 +32,33 @@ async function main() {
         where: { name },
         update: {},
         create: { name, isSystem: true },
-      })
-    )
+      }),
+    ),
   );
   const tagByName = Object.fromEntries(tagRecords.map((t) => [t.name, t]));
 
   // ── Users ───────────────────────────────────────────────────────────────────
   const adminUser = await prisma.user.upsert({
-    where: { email: process.env.E2E_ADMIN_EMAIL ?? "admin@test.local" },
+    where: { email: process.env.E2E_ADMIN_EMAIL ?? 'admin@test.local' },
     update: {},
     create: {
-      githubId: "github-admin-seed",
-      email: process.env.E2E_ADMIN_EMAIL ?? "admin@test.local",
-      name: "Admin User",
-      avatarUrl: "https://avatars.githubusercontent.com/u/1?v=4",
+      githubId: 'github-admin-seed',
+      email: process.env.E2E_ADMIN_EMAIL ?? 'admin@test.local',
+      name: 'Admin User',
+      avatarUrl: 'https://avatars.githubusercontent.com/u/1?v=4',
       role: Role.ADMIN,
       notificationPreferences: {},
     },
   });
 
   const regularUser = await prisma.user.upsert({
-    where: { email: process.env.E2E_USER_EMAIL ?? "user@test.local" },
+    where: { email: process.env.E2E_USER_EMAIL ?? 'user@test.local' },
     update: {},
     create: {
-      githubId: "github-user-seed",
-      email: process.env.E2E_USER_EMAIL ?? "user@test.local",
-      name: "Regular User",
-      avatarUrl: "https://avatars.githubusercontent.com/u/2?v=4",
+      githubId: 'github-user-seed',
+      email: process.env.E2E_USER_EMAIL ?? 'user@test.local',
+      name: 'Regular User',
+      avatarUrl: 'https://avatars.githubusercontent.com/u/2?v=4',
       role: Role.USER,
       notificationPreferences: {},
     },
@@ -60,34 +67,34 @@ async function main() {
   // ── Released Skills ─────────────────────────────────────────────────────────
   const skillDefs = [
     {
-      name: "python-code-reviewer",
-      description: "Reviews Python code for quality issues and style.",
+      name: 'python-code-reviewer',
+      description: 'Reviews Python code for quality issues and style.',
       owner: adminUser,
-      tags: ["python", "testing"],
+      tags: ['python', 'testing'],
     },
     {
-      name: "nodejs-api-builder",
-      description: "Scaffolds REST APIs with Node.js and Express.",
+      name: 'nodejs-api-builder',
+      description: 'Scaffolds REST APIs with Node.js and Express.',
       owner: adminUser,
-      tags: ["nodejs", "web-development"],
+      tags: ['nodejs', 'web-development'],
     },
     {
-      name: "go-microservice-kit",
-      description: "Generates Go microservice boilerplate with gRPC support.",
+      name: 'go-microservice-kit',
+      description: 'Generates Go microservice boilerplate with gRPC support.',
       owner: regularUser,
-      tags: ["go", "devops"],
+      tags: ['go', 'devops'],
     },
     {
-      name: "security-audit-tool",
-      description: "Runs OWASP-aligned security checks on codebases.",
+      name: 'security-audit-tool',
+      description: 'Runs OWASP-aligned security checks on codebases.',
       owner: adminUser,
-      tags: ["security", "testing"],
+      tags: ['security', 'testing'],
     },
     {
-      name: "data-pipeline-builder",
-      description: "Designs ETL pipelines for data engineering tasks.",
+      name: 'data-pipeline-builder',
+      description: 'Designs ETL pipelines for data engineering tasks.',
       owner: regularUser,
-      tags: ["data", "python"],
+      tags: ['data', 'python'],
     },
   ];
 
@@ -100,10 +107,10 @@ async function main() {
           spec: {
             name: def.name,
             description: def.description,
-            license: "MIT",
-            compatibility: ["gpt-4", "claude-3"],
+            license: 'MIT',
+            compatibility: ['gpt-4', 'claude-3'],
             metadata: { author: def.owner.name },
-            "allowed-tools": ["read_file", "write_file"],
+            'allowed-tools': ['read_file', 'write_file'],
             body: `You are a ${def.name} skill. Help users with ${def.description}`,
           },
           status: SkillStatus.RELEASED,
@@ -122,27 +129,27 @@ async function main() {
         def.tags.map((tagName) =>
           prisma.skillTag.create({
             data: { skillId: skill.id, tagId: tagByName[tagName].id },
-          })
-        )
+          }),
+        ),
       );
 
       return skill;
-    })
+    }),
   );
 
   // ── Templates ───────────────────────────────────────────────────────────────
   const templateDefs = [
     {
-      name: "rust-cli-helper",
-      description: "Draft template for Rust CLI tooling.",
+      name: 'rust-cli-helper',
+      description: 'Draft template for Rust CLI tooling.',
       owner: regularUser,
-      tags: ["rust"],
+      tags: ['rust'],
     },
     {
-      name: "java-spring-scaffolder",
-      description: "Draft template for Spring Boot project scaffolding.",
+      name: 'java-spring-scaffolder',
+      description: 'Draft template for Spring Boot project scaffolding.',
       owner: regularUser,
-      tags: ["java"],
+      tags: ['java'],
     },
   ];
 
@@ -152,7 +159,7 @@ async function main() {
         data: {
           name: def.name,
           description: def.description,
-          spec: { name: def.name, description: def.description, body: "Draft" },
+          spec: { name: def.name, description: def.description, body: 'Draft' },
           status: SkillStatus.TEMPLATE,
           version: 1,
         },
@@ -162,11 +169,11 @@ async function main() {
         def.tags.map((tagName) =>
           prisma.skillTag.create({
             data: { skillId: skill.id, tagId: tagByName[tagName].id },
-          })
-        )
+          }),
+        ),
       );
       return skill;
-    })
+    }),
   );
 
   // ── Followers ───────────────────────────────────────────────────────────────
@@ -192,16 +199,16 @@ async function main() {
 
   // ── Comments ─────────────────────────────────────────────────────────────────
   const commentTexts = [
-    "This is really useful, thanks!",
-    "How does this handle edge cases?",
-    "Works great with the latest model.",
-    "Could use more documentation.",
-    "Excellent implementation pattern.",
-    "I forked this for my team.",
-    "Any plans to add TypeScript support?",
-    "Tested in production — very stable.",
-    "The spec format is well-thought-out.",
-    "Great starting point for automation.",
+    'This is really useful, thanks!',
+    'How does this handle edge cases?',
+    'Works great with the latest model.',
+    'Could use more documentation.',
+    'Excellent implementation pattern.',
+    'I forked this for my team.',
+    'Any plans to add TypeScript support?',
+    'Tested in production — very stable.',
+    'The spec format is well-thought-out.',
+    'Great starting point for automation.',
   ];
 
   const comments = await Promise.all(
@@ -212,12 +219,17 @@ async function main() {
           authorId: i % 2 === 0 ? adminUser.id : regularUser.id,
           content,
         },
-      })
-    )
+      }),
+    ),
   );
 
   // ── Reactions ────────────────────────────────────────────────────────────────
-  const reactionEmojis = [ReactionEmoji.THUMBS_UP, ReactionEmoji.HEART, ReactionEmoji.ROCKET, ReactionEmoji.EYES];
+  const reactionEmojis = [
+    ReactionEmoji.THUMBS_UP,
+    ReactionEmoji.HEART,
+    ReactionEmoji.ROCKET,
+    ReactionEmoji.EYES,
+  ];
 
   await Promise.all([
     prisma.skillReaction.createMany({
@@ -245,8 +257,8 @@ async function main() {
     data: {
       skillId: skill1.id,
       requesterId: regularUser.id,
-      title: "Add error handling section",
-      description: "The skill should document how errors are handled in edge cases.",
+      title: 'Add error handling section',
+      description: 'The skill should document how errors are handled in edge cases.',
       status: ChangeRequestStatus.OPEN,
     },
   });
@@ -255,8 +267,8 @@ async function main() {
     data: {
       skillId: skill2.id,
       requesterId: regularUser.id,
-      title: "Improve response format",
-      description: "Responses should be structured as JSON objects.",
+      title: 'Improve response format',
+      description: 'Responses should be structured as JSON objects.',
       status: ChangeRequestStatus.APPROVED,
       resolvedById: adminUser.id,
       resolvedAt: new Date(),
@@ -267,8 +279,8 @@ async function main() {
     data: {
       skillId: skill3.id,
       requesterId: adminUser.id,
-      title: "Refactor tool list",
-      description: "The allowed-tools list is too verbose. Suggest trimming to essentials.",
+      title: 'Refactor tool list',
+      description: 'The allowed-tools list is too verbose. Suggest trimming to essentials.',
       status: ChangeRequestStatus.REJECTED,
       resolvedById: regularUser.id,
       resolvedAt: new Date(),
@@ -289,7 +301,7 @@ async function main() {
       data: notifTypes.map((type) => ({
         userId: user.id,
         type,
-        payload: { skillId: skill1.id, actorName: "Seed Bot" },
+        payload: { skillId: skill1.id, actorName: 'Seed Bot' },
         read: false,
       })),
     });
@@ -302,14 +314,14 @@ async function main() {
     snapshotDate.setHours(0, 0, 0, 0);
     snapshotData.push(
       { skillId: skill1.id, count: 1 + (29 - i), snapshotDate },
-      { skillId: skill2.id, count: 2 + (29 - i), snapshotDate }
+      { skillId: skill2.id, count: 2 + (29 - i), snapshotDate },
     );
   }
 
   await prisma.followerSnapshot.createMany({ data: snapshotData, skipDuplicates: true });
 
   console.log(`Seeded change requests: ${openCR.id}, ${approvedCR.id}`);
-  console.log("Seeding complete.");
+  console.log('Seeding complete.');
 }
 
 try {

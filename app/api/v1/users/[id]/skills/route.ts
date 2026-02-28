@@ -1,8 +1,8 @@
 // app/api/v1/users/[id]/skills/route.ts
 
-import { checkLimit, getIp, parsePagination } from "@/lib/api-helpers";
-import { prisma } from "@/lib/prisma";
-import { NextRequest, NextResponse } from "next/server";
+import { checkLimit, getIp, parsePagination } from '@/lib/api-helpers';
+import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from 'next/server';
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -19,20 +19,20 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       prisma.skill.findMany({
         where: {
           owners: { some: { userId: id } },
-          status: "RELEASED",
+          status: 'RELEASED',
         },
         include: {
           tags: { include: { tag: true } },
           _count: { select: { followers: true } },
         },
-        orderBy: { releasedAt: "desc" },
+        orderBy: { releasedAt: 'desc' },
         skip: (page - 1) * pageSize,
         take: pageSize,
       }),
       prisma.skill.count({
         where: {
           owners: { some: { userId: id } },
-          status: "RELEASED",
+          status: 'RELEASED',
         },
       }),
     ]);
@@ -43,9 +43,6 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     });
   } catch (err) {
     console.error(err);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

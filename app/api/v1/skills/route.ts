@@ -1,23 +1,26 @@
 // app/api/v1/skills/route.ts
 
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { rateLimit } from "@/lib/rate-limit";
-import { searchSkills } from "@/lib/search";
-import { validateSkillSpec } from "@/lib/skill-schema";
-import { pgNotify } from "@/lib/sse";
+import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { rateLimit } from '@/lib/rate-limit';
+import { searchSkills } from '@/lib/search';
+import { validateSkillSpec } from '@/lib/skill-schema';
+import { pgNotify } from '@/lib/sse';
 
 type TxClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
 export async function GET(req: NextRequest) {
-  const ip = req.headers.get("x-forwarded-for") ?? "unknown";
+  const ip = req.headers.get('x-forwarded-for') ?? 'unknown';
   const { allowed, retryAfter } = rateLimit(`GET /api/v1/skills ${ip}`);
   if (!allowed) {
-    return NextResponse.json({ error: "Too Many Requests" }, {
-      status: 429,
-      headers: { "Retry-After": String(retryAfter) },
-    });
+    return NextResponse.json(
+      { error: 'Too Many Requests' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(retryAfter) },
+      },
+    );
   }
 
   try {
@@ -25,40 +28,48 @@ export async function GET(req: NextRequest) {
     const session = await auth();
 
     const result = await searchSkills({
-      query: searchParams.get("q") ?? undefined,
-      tags: searchParams.getAll("tag"),
-      status: searchParams.get("status") as "TEMPLATE" | "RELEASED" | undefined,
-      ownerId: searchParams.get("ownerId") ?? undefined,
-      sort: (searchParams.get("sort") as Parameters<typeof searchSkills>[0]["sort"]) ?? "most_downloaded",
-      page: Math.max(1, Math.floor(Number(searchParams.get("page") ?? 1)) || 1),
-      pageSize: Math.max(1, Math.min(100, Math.floor(Number(searchParams.get("pageSize") ?? 12)) || 12)),
+      query: searchParams.get('q') ?? undefined,
+      tags: searchParams.getAll('tag'),
+      status: searchParams.get('status') as 'TEMPLATE' | 'RELEASED' | undefined,
+      ownerId: searchParams.get('ownerId') ?? undefined,
+      sort:
+        (searchParams.get('sort') as Parameters<typeof searchSkills>[0]['sort']) ??
+        'most_downloaded',
+      page: Math.max(1, Math.floor(Number(searchParams.get('page') ?? 1)) || 1),
+      pageSize: Math.max(
+        1,
+        Math.min(100, Math.floor(Number(searchParams.get('pageSize') ?? 12)) || 12),
+      ),
       userId: session?.user?.id,
     });
 
     return NextResponse.json({ data: result.skills, meta: result.meta });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
-  const ip = req.headers.get("x-forwarded-for") ?? "unknown";
+  const ip = req.headers.get('x-forwarded-for') ?? 'unknown';
   const { allowed, retryAfter } = rateLimit(`POST /api/v1/skills ${ip}`);
   if (!allowed) {
-    return NextResponse.json({ error: "Too Many Requests" }, {
-      status: 429,
-      headers: { "Retry-After": String(retryAfter) },
-    });
+    return NextResponse.json(
+      { error: 'Too Many Requests' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(retryAfter) },
+      },
+    );
   }
 
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    const body = await req.json() as {
+    const body = (await req.json()) as {
       name?: string;
       description?: string;
       spec?: Record<string, unknown>;
@@ -67,7 +78,10 @@ export async function POST(req: NextRequest) {
     };
 
     if (!body.name || !body.description || !body.spec) {
-      return NextResponse.json({ error: "name, description, and spec are required" }, { status: 400 });
+      return NextResponse.json(
+        { error: 'name, description, and spec are required' },
+        { status: 400 },
+      );
     }
 
     // Validate spec against Agent Skills specification
@@ -75,8 +89,8 @@ export async function POST(req: NextRequest) {
     const validation = validateSkillSpec(specToValidate);
     if (!validation.success) {
       return NextResponse.json(
-        { error: "Invalid skill spec", details: validation.error },
-        { status: 422 }
+        { error: 'Invalid skill spec', details: validation.error },
+        { status: 422 },
       );
     }
 
@@ -85,8 +99,8 @@ export async function POST(req: NextRequest) {
         data: {
           name: body.name!,
           description: body.description!,
-          spec: body.spec as Parameters<typeof prisma.skill.create>[0]["data"]["spec"],
-          files: (body.files ?? []) as Parameters<typeof prisma.skill.create>[0]["data"]["files"],
+          spec: body.spec as Parameters<typeof prisma.skill.create>[0]['data']['spec'],
+          files: (body.files ?? []) as Parameters<typeof prisma.skill.create>[0]['data']['files'],
         },
       });
 
@@ -97,9 +111,11 @@ export async function POST(req: NextRequest) {
       if (body.tags?.length) {
         const tags = await tx.tag.findMany({ where: { name: { in: body.tags } } });
         const existing = new Set(tags.map((t: { name: string }) => t.name));
-        const newTagNames = body.tags.filter((t: string) => !existing.has(t)).slice(0, 10 - tags.length);
+        const newTagNames = body.tags
+          .filter((t: string) => !existing.has(t))
+          .slice(0, 10 - tags.length);
         const createdTags = await Promise.all(
-          newTagNames.map((name: string) => tx.tag.create({ data: { name } }))
+          newTagNames.map((name: string) => tx.tag.create({ data: { name } })),
         );
         const allTags = [...tags, ...createdTags];
         await tx.skillTag.createMany({
@@ -110,16 +126,11 @@ export async function POST(req: NextRequest) {
       return created;
     });
 
-    await pgNotify(
-      "global_stats",
-      JSON.stringify({ event: "skill_created", skillId: skill.id })
-    );
+    await pgNotify('global_stats', JSON.stringify({ event: 'skill_created', skillId: skill.id }));
 
     return NextResponse.json({ data: skill }, { status: 201 });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
-
-

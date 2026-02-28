@@ -1,11 +1,11 @@
 // features/tags/components/TagSelector.tsx
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useTags, useCreateTag } from "../hooks/useTags";
+import { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useTags, useCreateTag } from '../hooks/useTags';
 
 interface TagSelectorProps {
   selected: string[];
@@ -16,7 +16,7 @@ interface TagSelectorProps {
 export function TagSelector({ selected, onChange, max = 10 }: Readonly<TagSelectorProps>) {
   const { data: tags } = useTags();
   const createTag = useCreateTag();
-  const [customInput, setCustomInput] = useState("");
+  const [customInput, setCustomInput] = useState('');
 
   const toggleTag = (tagId: string) => {
     if (selected.includes(tagId)) {
@@ -45,7 +45,7 @@ export function TagSelector({ selected, onChange, max = 10 }: Readonly<TagSelect
         // tag creation failed
       }
     }
-    setCustomInput("");
+    setCustomInput('');
   };
 
   return (
@@ -54,11 +54,12 @@ export function TagSelector({ selected, onChange, max = 10 }: Readonly<TagSelect
         {tags?.map((tag) => (
           <Badge
             key={tag.id}
-            variant={selected.includes(tag.id) ? "default" : "outline"}
-            className={`cursor-pointer ${tag.isSystem ? "border-primary/50" : ""}`}
+            variant={selected.includes(tag.id) ? 'default' : 'outline'}
+            className={`cursor-pointer ${tag.isSystem ? 'border-primary/50' : ''}`}
             onClick={() => toggleTag(tag.id)}
           >
-            {tag.isSystem && "⭐ "}{tag.name}
+            {tag.isSystem && '⭐ '}
+            {tag.name}
           </Badge>
         ))}
       </div>
@@ -69,7 +70,7 @@ export function TagSelector({ selected, onChange, max = 10 }: Readonly<TagSelect
           placeholder="Add custom tag..."
           className="max-w-48"
           onKeyDown={(e) => {
-            if (e.key === "Enter") {
+            if (e.key === 'Enter') {
               e.preventDefault();
               handleAddCustom();
             }
@@ -85,7 +86,7 @@ export function TagSelector({ selected, onChange, max = 10 }: Readonly<TagSelect
           Add
         </Button>
       </div>
-      <p className="text-xs text-muted-foreground">
+      <p className="text-muted-foreground text-xs">
         {selected.length}/{max} tags selected
       </p>
     </div>

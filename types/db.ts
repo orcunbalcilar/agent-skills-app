@@ -1,7 +1,7 @@
 // types/db.ts
 // Re-export Prisma enums and model types for convenience across the app
 
-export type { 
+export type {
   User,
   Skill,
   SkillOwner,
@@ -15,51 +15,51 @@ export type {
   Notification,
   SkillDownloadEvent,
   FollowerSnapshot,
-} from "@prisma/client";
+} from '@prisma/client';
 
-export type Role = "ADMIN" | "USER";
-export type SkillStatus = "TEMPLATE" | "RELEASED";
-export type ChangeRequestStatus = "OPEN" | "APPROVED" | "REJECTED" | "WITHDRAWN";
+export type Role = 'ADMIN' | 'USER';
+export type SkillStatus = 'TEMPLATE' | 'RELEASED';
+export type ChangeRequestStatus = 'OPEN' | 'APPROVED' | 'REJECTED' | 'WITHDRAWN';
 export type NotificationType =
-  | "NEW_COMMENT"
-  | "CHANGE_REQUEST_SUBMITTED"
-  | "CHANGE_REQUEST_APPROVED"
-  | "CHANGE_REQUEST_REJECTED"
-  | "NEW_FOLLOWER"
-  | "SKILL_RELEASED"
-  | "SKILL_FORKED"
-  | "OWNER_ADDED"
-  | "OWNER_REMOVED";
+  | 'NEW_COMMENT'
+  | 'CHANGE_REQUEST_SUBMITTED'
+  | 'CHANGE_REQUEST_APPROVED'
+  | 'CHANGE_REQUEST_REJECTED'
+  | 'NEW_FOLLOWER'
+  | 'SKILL_RELEASED'
+  | 'SKILL_FORKED'
+  | 'OWNER_ADDED'
+  | 'OWNER_REMOVED';
 export type ReactionEmoji =
-  | "THUMBS_UP"
-  | "THUMBS_DOWN"
-  | "LAUGH"
-  | "HOORAY"
-  | "CONFUSED"
-  | "HEART"
-  | "ROCKET"
-  | "EYES";
+  | 'THUMBS_UP'
+  | 'THUMBS_DOWN'
+  | 'LAUGH'
+  | 'HOORAY'
+  | 'CONFUSED'
+  | 'HEART'
+  | 'ROCKET'
+  | 'EYES';
 
 export const EMOJI_MAP: Record<ReactionEmoji, string> = {
-  THUMBS_UP: "👍",
-  THUMBS_DOWN: "👎",
-  LAUGH: "😄",
-  HOORAY: "🎉",
-  CONFUSED: "😕",
-  HEART: "❤️",
-  ROCKET: "🚀",
-  EYES: "👀",
+  THUMBS_UP: '👍',
+  THUMBS_DOWN: '👎',
+  LAUGH: '😄',
+  HOORAY: '🎉',
+  CONFUSED: '😕',
+  HEART: '❤️',
+  ROCKET: '🚀',
+  EYES: '👀',
 };
 
 export const ALL_EMOJIS: ReactionEmoji[] = [
-  "THUMBS_UP",
-  "THUMBS_DOWN",
-  "LAUGH",
-  "HOORAY",
-  "CONFUSED",
-  "HEART",
-  "ROCKET",
-  "EYES",
+  'THUMBS_UP',
+  'THUMBS_DOWN',
+  'LAUGH',
+  'HOORAY',
+  'CONFUSED',
+  'HEART',
+  'ROCKET',
+  'EYES',
 ];
 
 // Extended skill type with relations

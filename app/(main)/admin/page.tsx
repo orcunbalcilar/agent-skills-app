@@ -1,15 +1,22 @@
 // app/(main)/admin/page.tsx
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
-import { redirect } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { useTags, useCreateTag, useDeleteTag } from "@/features/tags/hooks/useTags";
-import { Input } from "@/components/ui/input";
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { redirect } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { useTags, useCreateTag, useDeleteTag } from '@/features/tags/hooks/useTags';
+import { Input } from '@/components/ui/input';
 
 interface OrphanedSkill {
   id: string;
@@ -25,33 +32,35 @@ export default function AdminPage() {
   const { data: tags } = useTags();
   const createTag = useCreateTag();
   const deleteTag = useDeleteTag();
-  const [newTagName, setNewTagName] = useState("");
+  const [newTagName, setNewTagName] = useState('');
   const [orphaned, setOrphaned] = useState<OrphanedSkill[]>([]);
 
   useEffect(() => {
     // Fetch orphaned skills (skills with no owners)
-    fetch("/api/v1/skills?orphaned=true")
+    fetch('/api/v1/skills?orphaned=true')
       .then((r) => r.json())
       .then((data: { data?: OrphanedSkill[] }) => {
         if (data.data) setOrphaned(data.data);
       })
-      .catch(() => { /* ignore */ });
+      .catch(() => {
+        /* ignore */
+      });
   }, []);
 
-  if (userRole !== "ADMIN") {
-    redirect("/");
+  if (userRole !== 'ADMIN') {
+    redirect('/');
   }
 
   const handleAddTag = () => {
     const trimmed = newTagName.trim().toLowerCase();
     if (!trimmed) return;
     createTag.mutate(trimmed, {
-      onSuccess: () => setNewTagName(""),
+      onSuccess: () => setNewTagName(''),
     });
   };
 
   const handleDeleteOrphanedSkill = async (skillId: string) => {
-    const res = await fetch(`/api/v1/skills/${skillId}`, { method: "DELETE" });
+    const res = await fetch(`/api/v1/skills/${skillId}`, { method: 'DELETE' });
     if (res.ok) {
       setOrphaned((prev) => prev.filter((s) => s.id !== skillId));
     }
@@ -59,7 +68,7 @@ export default function AdminPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-bold gradient-text">Admin Panel</h1>
+      <h1 className="gradient-text text-2xl font-bold">Admin Panel</h1>
 
       {/* Orphaned Skills */}
       <Card className="border-border/50">
@@ -68,7 +77,7 @@ export default function AdminPage() {
         </CardHeader>
         <CardContent>
           {orphaned.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No orphaned skills.</p>
+            <p className="text-muted-foreground text-sm">No orphaned skills.</p>
           ) : (
             <Table>
               <TableHeader>
@@ -117,29 +126,29 @@ export default function AdminPage() {
               placeholder="New tag name..."
               className="max-w-48"
               onKeyDown={(e) => {
-                if (e.key === "Enter") {
+                if (e.key === 'Enter') {
                   e.preventDefault();
                   handleAddTag();
                 }
               }}
             />
-            <Button
-              size="sm"
-              onClick={handleAddTag}
-              disabled={createTag.isPending}
-            >
+            <Button size="sm" onClick={handleAddTag} disabled={createTag.isPending}>
               Add Tag
             </Button>
           </div>
           <div className="flex flex-wrap gap-2">
             {tags?.map((tag) => (
-              <Badge key={tag.id} variant={tag.isSystem ? "default" : "secondary"} className="gap-1">
+              <Badge
+                key={tag.id}
+                variant={tag.isSystem ? 'default' : 'secondary'}
+                className="gap-1"
+              >
                 {tag.name}
                 {!tag.isSystem && (
                   <button
                     type="button"
                     onClick={() => deleteTag.mutate(tag.id)}
-                    className="ml-1 hover:text-destructive"
+                    className="hover:text-destructive ml-1"
                     aria-label={`Delete tag ${tag.name}`}
                   >
                     ×

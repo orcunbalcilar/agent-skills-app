@@ -1,13 +1,13 @@
 // features/comments/components/CommentItem.tsx
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { EmojiReactions } from "@/features/skills/components/EmojiReactions";
-import { useEditComment, useDeleteComment, useToggleCommentReaction } from "../hooks/useComments";
-import type { Comment } from "../hooks/useComments";
+import { useState } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { EmojiReactions } from '@/features/skills/components/EmojiReactions';
+import { useEditComment, useDeleteComment, useToggleCommentReaction } from '../hooks/useComments';
+import type { Comment } from '../hooks/useComments';
 
 interface CommentItemProps {
   comment: Comment;
@@ -43,13 +43,13 @@ export function CommentItem({
   const handleSaveEdit = () => {
     editComment.mutate(
       { commentId: comment.id, content: editContent },
-      { onSuccess: () => setEditing(false) }
+      { onSuccess: () => setEditing(false) },
     );
   };
 
   if (isDeleted) {
     return (
-      <div className="py-3 text-sm text-muted-foreground italic">
+      <div className="text-muted-foreground py-3 text-sm italic">
         This comment has been deleted.
       </div>
     );
@@ -70,10 +70,7 @@ export function CommentItem({
         </div>
         {editing ? (
           <div className="space-y-2">
-            <Textarea
-              value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
-            />
+            <Textarea value={editContent} onChange={(e) => setEditContent(e.target.value)} />
             <div className="flex gap-2">
               <Button size="sm" onClick={handleSaveEdit} disabled={editComment.isPending}>
                 Save
@@ -91,9 +88,7 @@ export function CommentItem({
                 <EmojiReactions
                   counts={reactionCounts}
                   userReactions={userReactions}
-                  onToggle={(emoji) =>
-                    toggleReaction.mutate({ commentId: comment.id, emoji })
-                  }
+                  onToggle={(emoji) => toggleReaction.mutate({ commentId: comment.id, emoji })}
                 />
               )}
               {isAuthor && (

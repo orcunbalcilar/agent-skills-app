@@ -1,7 +1,7 @@
 // stores/notification-store.ts
-"use client";
+'use client';
 
-import { create } from "zustand";
+import { create } from 'zustand';
 
 interface NotificationStore {
   unreadCount: number;
@@ -12,6 +12,5 @@ interface NotificationStore {
 export const useNotificationStore = create<NotificationStore>()((set) => ({
   unreadCount: 0,
   setUnreadCount: (count) => set({ unreadCount: count }),
-  incrementUnreadCount: () =>
-    set((state) => ({ unreadCount: state.unreadCount + 1 })),
+  incrementUnreadCount: () => set((state) => ({ unreadCount: state.unreadCount + 1 })),
 }));

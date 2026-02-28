@@ -1,8 +1,8 @@
 // app/api/v1/skills/[id]/versions/route.ts
 
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { checkLimit, getIp, parsePagination } from "@/lib/api-helpers";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { checkLimit, getIp, parsePagination } from '@/lib/api-helpers';
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     const [versions, total] = await Promise.all([
       prisma.skillVersion.findMany({
         where: { skillId: id },
-        orderBy: { version: "desc" },
+        orderBy: { version: 'desc' },
         skip: (page - 1) * pageSize,
         take: pageSize,
         include: {
@@ -39,6 +39,6 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
