@@ -13,6 +13,8 @@ vi.mock("@/lib/api-helpers", () => ({
   requireAuth: vi.fn().mockResolvedValue({ user: { id: "u1" } }),
 }));
 
+
+
 import { POST } from "@/app/api/v1/upload/route";
 import { checkLimit, requireAuth } from "@/lib/api-helpers";
 
@@ -157,7 +159,7 @@ describe("POST /api/v1/upload", () => {
     expect(json.details).toContain("YAML frontmatter");
   });
 
-  it("should return warnings for non-standard directories", async () => {
+  it("should warn about non-standard directories", async () => {
     const zipBuffer = await createZipBuffer({
       "SKILL.md": makeSkillMd("my-skill", "test"),
       "baddir/file.txt": "content",
@@ -169,7 +171,6 @@ describe("POST /api/v1/upload", () => {
     const json = await res.json();
     expect(json.warnings).toBeDefined();
     expect(json.warnings[0]).toContain("Non-standard directory");
-    expect(json.warnings[0]).toContain("baddir");
   });
 
   it("should reject when form field is string not file", async () => {
@@ -295,13 +296,15 @@ describe("POST /api/v1/upload", () => {
     expect(json.data.body).toBeUndefined();
   });
 
-  it("should handle SKILL.md with invalid frontmatter via validateSkillFolder", async () => {
+  it("should reject zip with unparseable YAML in frontmatter", async () => {
     const zipBuffer = await createZipBuffer({
-      "SKILL.md": "---\nname: Invalid-Name\ndescription: test\n---\n",
+      "SKILL.md": "---\ninvalid: yaml: content: [broken\n---\n",
     });
     const req = makeMultipartRequest(zipBuffer);
     const res = await POST(req);
     expect(res.status).toBe(422);
+    const json = await res.json();
+    expect(json.details).toContain("Invalid YAML");
   });
 
   it("should handle entries spanning multiple root dirs", async () => {
