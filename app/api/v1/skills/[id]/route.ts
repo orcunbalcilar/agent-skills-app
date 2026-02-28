@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { checkLimit, getIp, requireAuth } from '@/lib/api-helpers';
+import { validateSkillSpec } from '@/lib/skill-schema';
 import type { Prisma } from '@prisma/client';
 
 type RouteParams = { params: Promise<{ id: string }> };
@@ -83,6 +84,22 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       tags?: string[];
       editMessage?: string;
     };
+
+    // Validate spec fields the same way POST does
+    const nameToValidate = body.name ?? skill.name;
+    const descToValidate = body.description ?? skill.description;
+    const specToValidate = {
+      ...(body.spec ?? (skill.spec as Record<string, unknown>)),
+      name: nameToValidate,
+      description: descToValidate,
+    };
+    const validation = validateSkillSpec(specToValidate);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Invalid skill spec', details: validation.error },
+        { status: 422 },
+      );
+    }
 
     const updated = await prisma.$transaction(async (tx) => {
       // Snapshot current state as a version before updating

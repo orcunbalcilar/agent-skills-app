@@ -100,9 +100,11 @@ describe('PATCH /api/v1/skills/[id]', () => {
   it('should update skill name and spec', async () => {
     vi.mocked(prisma.skill.findUnique).mockResolvedValue({
       id: 's1',
+      name: 'old-skill',
+      description: 'old desc',
       status: 'TEMPLATE',
       version: 1,
-      spec: {},
+      spec: { name: 'old-skill', description: 'old desc' },
       files: [],
       owners: [{ userId: 'owner1' }],
     } as never);
@@ -131,9 +133,11 @@ describe('PATCH /api/v1/skills/[id]', () => {
   it('should handle tag updates with existing and new tags', async () => {
     vi.mocked(prisma.skill.findUnique).mockResolvedValue({
       id: 's1',
+      name: 'my-skill',
+      description: 'a valid description',
       status: 'TEMPLATE',
       version: 1,
-      spec: {},
+      spec: { name: 'my-skill', description: 'a valid description' },
       files: [],
       owners: [{ userId: 'owner1' }],
     } as never);
@@ -168,9 +172,11 @@ describe('PATCH /api/v1/skills/[id]', () => {
     vi.mocked(requireAuth).mockResolvedValue({ user: { id: 'admin1', role: 'ADMIN' } } as never);
     vi.mocked(prisma.skill.findUnique).mockResolvedValue({
       id: 's1',
+      name: 'my-skill',
+      description: 'a valid description',
       status: 'TEMPLATE',
       version: 1,
-      spec: {},
+      spec: { name: 'my-skill', description: 'a valid description' },
       files: [],
       owners: [{ userId: 'owner1' }],
     } as never);
@@ -208,9 +214,11 @@ describe('PATCH /api/v1/skills/[id]', () => {
   it('should update spec and files fields', async () => {
     vi.mocked(prisma.skill.findUnique).mockResolvedValue({
       id: 's1',
+      name: 'my-skill',
+      description: 'a valid description',
       status: 'TEMPLATE',
       version: 1,
-      spec: {},
+      spec: { name: 'my-skill', description: 'a valid description' },
       files: [],
       owners: [{ userId: 'owner1' }],
     } as never);
@@ -233,10 +241,159 @@ describe('PATCH /api/v1/skills/[id]', () => {
 
     const req = new NextRequest('http://localhost/api/v1/skills/s1', {
       method: 'PATCH',
-      body: JSON.stringify({ spec: { name: 's1' }, files: [{ path: 'a.txt', content: 'hello' }] }),
+      body: JSON.stringify({
+        spec: { name: 'my-skill', description: 'a valid description' },
+        files: [{ path: 'a.txt', content: 'hello' }],
+      }),
     });
     const res = await PATCH(req, { params: Promise.resolve({ id: 's1' }) });
 
     expect(res.status).toBe(200);
+  });
+});
+
+describe('PATCH /api/v1/skills/[id] validation', () => {
+  const session = { user: { id: 'owner1', role: 'USER', name: 'Owner' }, expires: '' };
+  const validSkill = {
+    id: 's1',
+    name: 'my-skill',
+    description: 'a valid description',
+    status: 'TEMPLATE',
+    version: 1,
+    spec: { name: 'my-skill', description: 'a valid description' },
+    files: [],
+    owners: [{ userId: 'owner1' }],
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(requireAuth).mockResolvedValue(session as never);
+    vi.mocked(prisma.skill.findUnique).mockResolvedValue(validSkill as never);
+  });
+
+  it('should return 422 for invalid name format', async () => {
+    const req = new NextRequest('http://localhost/api/v1/skills/s1', {
+      method: 'PATCH',
+      body: JSON.stringify({ name: 'INVALID NAME!!!' }),
+    });
+    const res = await PATCH(req, { params: Promise.resolve({ id: 's1' }) });
+    expect(res.status).toBe(422);
+    const body = await res.json();
+    expect(body.error).toBe('Invalid skill spec');
+    expect(body.details).toBeDefined();
+  });
+
+  it('should return 422 for empty description', async () => {
+    const req = new NextRequest('http://localhost/api/v1/skills/s1', {
+      method: 'PATCH',
+      body: JSON.stringify({ description: '' }),
+    });
+    const res = await PATCH(req, { params: Promise.resolve({ id: 's1' }) });
+    expect(res.status).toBe(422);
+    const body = await res.json();
+    expect(body.error).toBe('Invalid skill spec');
+  });
+
+  it('should return 422 for name with uppercase characters', async () => {
+    const req = new NextRequest('http://localhost/api/v1/skills/s1', {
+      method: 'PATCH',
+      body: JSON.stringify({ name: 'MySkill' }),
+    });
+    const res = await PATCH(req, { params: Promise.resolve({ id: 's1' }) });
+    expect(res.status).toBe(422);
+  });
+
+  it('should return 422 for name exceeding 64 characters', async () => {
+    const req = new NextRequest('http://localhost/api/v1/skills/s1', {
+      method: 'PATCH',
+      body: JSON.stringify({ name: 'a'.repeat(65) }),
+    });
+    const res = await PATCH(req, { params: Promise.resolve({ id: 's1' }) });
+    expect(res.status).toBe(422);
+  });
+
+  it('should return 422 for description exceeding 1024 characters', async () => {
+    const req = new NextRequest('http://localhost/api/v1/skills/s1', {
+      method: 'PATCH',
+      body: JSON.stringify({ description: 'x'.repeat(1025) }),
+    });
+    const res = await PATCH(req, { params: Promise.resolve({ id: 's1' }) });
+    expect(res.status).toBe(422);
+  });
+
+  it('should return 422 for name with consecutive hyphens', async () => {
+    const req = new NextRequest('http://localhost/api/v1/skills/s1', {
+      method: 'PATCH',
+      body: JSON.stringify({ name: 'my--skill' }),
+    });
+    const res = await PATCH(req, { params: Promise.resolve({ id: 's1' }) });
+    expect(res.status).toBe(422);
+  });
+
+  it('should return 422 for name with leading hyphen', async () => {
+    const req = new NextRequest('http://localhost/api/v1/skills/s1', {
+      method: 'PATCH',
+      body: JSON.stringify({ name: '-my-skill' }),
+    });
+    const res = await PATCH(req, { params: Promise.resolve({ id: 's1' }) });
+    expect(res.status).toBe(422);
+  });
+
+  it('should accept valid partial update with only name', async () => {
+    vi.mocked(prisma.$transaction).mockImplementation(
+      async (cb: (tx: unknown) => Promise<unknown>) => {
+        return cb({
+          skillVersion: { create: vi.fn().mockResolvedValue({}) },
+          skill: {
+            update: vi.fn().mockResolvedValue({ ...validSkill, name: 'new-name', version: 2 }),
+          },
+          skillTag: { deleteMany: vi.fn(), createMany: vi.fn() },
+          tag: { findMany: vi.fn().mockResolvedValue([]) },
+        });
+      },
+    );
+    const req = new NextRequest('http://localhost/api/v1/skills/s1', {
+      method: 'PATCH',
+      body: JSON.stringify({ name: 'new-name' }),
+    });
+    const res = await PATCH(req, { params: Promise.resolve({ id: 's1' }) });
+    expect(res.status).toBe(200);
+  });
+
+  it('should accept valid partial update with only tags', async () => {
+    vi.mocked(prisma.$transaction).mockImplementation(
+      async (cb: (tx: unknown) => Promise<unknown>) => {
+        return cb({
+          skillVersion: { create: vi.fn().mockResolvedValue({}) },
+          skill: {
+            update: vi.fn().mockResolvedValue({ ...validSkill, version: 2 }),
+          },
+          skillTag: { deleteMany: vi.fn(), createMany: vi.fn() },
+          tag: {
+            findMany: vi.fn().mockResolvedValue([{ id: 't1', name: 'ai' }]),
+            create: vi.fn(),
+          },
+        });
+      },
+    );
+    const req = new NextRequest('http://localhost/api/v1/skills/s1', {
+      method: 'PATCH',
+      body: JSON.stringify({ tags: ['ai'] }),
+    });
+    const res = await PATCH(req, { params: Promise.resolve({ id: 's1' }) });
+    expect(res.status).toBe(200);
+  });
+
+  it('should validate spec from body when provided', async () => {
+    const req = new NextRequest('http://localhost/api/v1/skills/s1', {
+      method: 'PATCH',
+      body: JSON.stringify({
+        name: 'INVALID',
+        description: '',
+        spec: { name: 'INVALID', description: '' },
+      }),
+    });
+    const res = await PATCH(req, { params: Promise.resolve({ id: 's1' }) });
+    expect(res.status).toBe(422);
   });
 });

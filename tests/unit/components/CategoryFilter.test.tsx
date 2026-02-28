@@ -81,4 +81,22 @@ describe('CategoryFilter', () => {
     const badge = screen.getByText('python').closest('[data-slot="badge"]');
     expect(badge?.className).toContain('shadow-sm');
   });
+
+  it('should toggle tag on Enter key', () => {
+    render(<CategoryFilter selected={[]} onChange={onChange} />);
+    fireEvent.keyDown(screen.getByText('python'), { key: 'Enter' });
+    expect(onChange).toHaveBeenCalledWith(['t1']);
+  });
+
+  it('should toggle tag on Space key', () => {
+    render(<CategoryFilter selected={[]} onChange={onChange} />);
+    fireEvent.keyDown(screen.getByText('python'), { key: ' ' });
+    expect(onChange).toHaveBeenCalledWith(['t1']);
+  });
+
+  it('should not toggle tag on other keys', () => {
+    render(<CategoryFilter selected={[]} onChange={onChange} />);
+    fireEvent.keyDown(screen.getByText('python'), { key: 'Tab' });
+    expect(onChange).not.toHaveBeenCalled();
+  });
 });

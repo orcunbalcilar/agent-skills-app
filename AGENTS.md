@@ -55,3 +55,5 @@
 - Vercel deployments need a `vercel-build` script: `prisma generate && prisma migrate deploy && next build`
 - No dotenv needed for vercel deployments. Vercel injects env vars at build/runtime; locally use `direnv` or shell exports
 - Supabase PgBouncer (port 6543) hangs on `prisma migrate deploy` — use session mode (port 5432) via `DIRECT_URL` for migrations
+- PATCH/PUT endpoints must mirror the same validation as their POST counterpart — missing validation on update routes is a common security gap that allows invalid data into the DB
+- When adding validation to an update endpoint, mock skill objects in tests must include all fields used by validation fallbacks (e.g., `name`, `description` on the Prisma result)

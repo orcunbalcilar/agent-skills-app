@@ -70,3 +70,65 @@ test.describe('Skill editing', () => {
     }
   });
 });
+
+test.describe('Skill PATCH validation', () => {
+  let skillId: string;
+
+  test.beforeAll(async ({ request }) => {
+    // Find or use the first available TEMPLATE skill
+    const res = await request.get('/api/v1/skills?status=TEMPLATE');
+    const body = await res.json();
+    if (body.data?.length > 0) {
+      skillId = body.data[0].id;
+    }
+  });
+
+  test('PATCH should reject invalid name format', async ({ request }) => {
+    test.skip(!skillId, 'No TEMPLATE skill available');
+    const res = await request.patch(`/api/v1/skills/${skillId}`, {
+      data: { name: 'INVALID NAME WITH SPACES!!!' },
+    });
+    expect(res.status()).toBe(422);
+    const body = await res.json();
+    expect(body.error).toBe('Invalid skill spec');
+    expect(body.details).toBeDefined();
+  });
+
+  test('PATCH should reject empty description', async ({ request }) => {
+    test.skip(!skillId, 'No TEMPLATE skill available');
+    const res = await request.patch(`/api/v1/skills/${skillId}`, {
+      data: { description: '' },
+    });
+    expect(res.status()).toBe(422);
+    const body = await res.json();
+    expect(body.error).toBe('Invalid skill spec');
+  });
+
+  test('PATCH should reject name exceeding 64 characters', async ({ request }) => {
+    test.skip(!skillId, 'No TEMPLATE skill available');
+    const res = await request.patch(`/api/v1/skills/${skillId}`, {
+      data: { name: 'a'.repeat(65) },
+    });
+    expect(res.status()).toBe(422);
+  });
+
+  test('PATCH should accept valid name update', async ({ request }) => {
+    test.skip(!skillId, 'No TEMPLATE skill available');
+    // First get current name to restore later
+    const getRes = await request.get(`/api/v1/skills/${skillId}`);
+    const current = await getRes.json();
+    const originalName = current.data.name;
+
+    const res = await request.patch(`/api/v1/skills/${skillId}`, {
+      data: { name: 'valid-edit-name' },
+    });
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    expect(body.data.name).toBe('valid-edit-name');
+
+    // Restore original name
+    await request.patch(`/api/v1/skills/${skillId}`, {
+      data: { name: originalName },
+    });
+  });
+});

@@ -49,6 +49,7 @@ describe('PATCH /api/v1/skills/[id] – versioning', () => {
     const existingSkill = {
       id: 's1',
       name: 'my-skill',
+      description: 'old',
       version: 3,
       spec: { name: 'my-skill', description: 'old' },
       files: [{ path: 'SKILL.md', content: 'old content' }],
@@ -143,8 +144,10 @@ describe('PATCH /api/v1/skills/[id] – versioning', () => {
   it('should support tag removal via set semantics', async () => {
     vi.mocked(prisma.skill.findUnique).mockResolvedValue({
       id: 's1',
+      name: 'my-skill',
+      description: 'a valid description',
       version: 1,
-      spec: {},
+      spec: { name: 'my-skill', description: 'a valid description' },
       files: null,
       status: 'TEMPLATE',
       owners: [{ userId: 'owner1' }],
